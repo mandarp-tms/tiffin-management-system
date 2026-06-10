@@ -1,0 +1,16 @@
+export const tiffins = [
+    { id: 1, userId: 3, userName: 'Rahul Shah', date: '2025-06-01', type: 'full', chapatiCount: 3, amount: 80, status: 'approved', note: '' },
+    { id: 2, userId: 4, userName: 'Priya Mehta', date: '2025-06-01', type: 'half', chapatiCount: 2, amount: 60, status: 'approved', note: '' },
+    { id: 3, userId: 3, userName: 'Rahul Shah', date: '2025-06-02', type: 'full', chapatiCount: 2, amount: 75, status: 'approved', note: '' },
+    { id: 4, userId: 4, userName: 'Priya Mehta', date: '2025-06-02', type: 'dalrice', chapatiCount: 0, amount: 70, status: 'approved', note: '' },
+    { id: 5, userId: 3, userName: 'Rahul Shah', date: '2025-06-03', type: 'full', chapatiCount: 3, amount: 80, status: 'approved', note: '' },
+    { id: 6, userId: 4, userName: 'Priya Mehta', date: '2025-06-03', type: 'none', chapatiCount: 0, amount: 0, status: 'approved', note: 'No tiffin' },
+    { id: 7, userId: 3, userName: 'Rahul Shah', date: '2025-06-04', type: 'bhakari', chapatiCount: 2, amount: 50, status: 'approved', note: '' },
+    { id: 8, userId: 4, userName: 'Priya Mehta', date: '2025-06-04', type: 'half', chapatiCount: 1, amount: 55, status: 'approved', note: '' },
+    { id: 9, userId: 3, userName: 'Rahul Shah', date: '2025-06-05', type: 'chapati', chapatiCount: 2, amount: 40, status: 'approved', note: '' },
+    { id: 10, userId: 4, userName: 'Priya Mehta', date: '2025-06-05', type: 'full', chapatiCount: 3, amount: 80, status: 'approved', note: '' },
+    { id: 11, userId: 3, userName: 'Rahul Shah', date: '2025-06-06', type: 'full', chapatiCount: 3, amount: 80, status: 'approved', note: '' },
+    { id: 12, userId: 4, userName: 'Priya Mehta', date: '2025-06-06', type: 'half', chapatiCount: 2, amount: 60, status: 'approved', note: '' },
+    { id: 13, userId: 3, userName: 'Rahul Shah', date: '2025-06-07', type: 'full', chapatiCount: 3, amount: 80, status: 'pending', note: '' },
+    { id: 14, userId: 4, userName: 'Priya Mehta', date: '2025-06-07', type: 'chapati', chapatiCount: 2, amount: 40, status: 'pending', note: '' },
+]
