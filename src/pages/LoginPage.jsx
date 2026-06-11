@@ -5,6 +5,7 @@ import { Password } from 'primereact/password'
 import { Button } from 'primereact/button'
 import { Toast } from 'primereact/toast'
 import { useAuth } from '../context/AuthContext'
+import logo from '../assets/logo.png'
 
 const LoginPage = () => {
     const { login } = useAuth()
@@ -60,7 +61,8 @@ const LoginPage = () => {
 
                 {/* Brand */}
                 <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                    <div style={{ fontSize: '40px', marginBottom: '0.5rem' }}>🍱</div>
+                    <img src={logo} alt='Tiffin Manager'
+                        style={{ width: '64px', height: '64px', objectFit: 'contain', marginBottom: '0.5rem' }} />
                     <h2 style={{ fontWeight: 700, fontSize: '20px' }}>Tiffin Manager</h2>
                     <p style={{ color: 'var(--text-color-secondary)', fontSize: '14px', marginTop: '4px' }}>
                         Daily tiffin tracking & billing

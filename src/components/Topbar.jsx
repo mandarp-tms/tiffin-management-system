@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Button } from 'primereact/button'
-import { Avatar } from 'primereact/avatar'
 import { useAuth } from '../context/AuthContext'
+import AppIcon from './AppIcon'
+import logo from '../assets/logo.png'
 
 const PAGE_TITLES = {
     '/dashboard': 'Dashboard',
@@ -27,46 +27,63 @@ const Topbar = ({ onHamburgerClick, isMobile }) => {
     return (
         <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: isMobile ? '0.65rem 1rem' : '0.75rem 1.5rem',
+            padding: isMobile ? '0 1rem' : '0 1.5rem',
+            height: '56px',
             background: 'var(--surface-card)',
             borderBottom: '1px solid var(--surface-border)',
             position: 'sticky', top: 0, zIndex: 100,
+            flexShrink: 0,
         }}>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                {/* Hamburger — mobile only */}
                 {isMobile && (
-                    <Button
-                        icon='pi pi-bars'
-                        rounded text severity='secondary'
+                    <div
                         onClick={onHamburgerClick}
-                        style={{ width: '36px', height: '36px' }}
-                    />
+                        style={{
+                            width: '36px', height: '36px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', borderRadius: '8px',
+                            background: 'var(--surface-ground)',
+                        }}
+                    >
+                        <AppIcon name='menu' size={18} color='var(--text-color)' />
+                    </div>
+                )}
+                {isMobile && (
+                    <img src={logo} alt='logo'
+                        style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
                 )}
                 <span style={{ fontSize: isMobile ? '15px' : '16px', fontWeight: 600 }}>
-                    {isMobile ? '🍱 ' : ''}{title}
+                    {title}
                 </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Avatar
-                    label={currentUser?.avatar}
-                    shape='circle'
-                    size='normal'
-                    style={{ background: '#E1F5EE', color: '#085041', fontWeight: 600, flexShrink: 0 }}
-                />
-                {/* Hide name on mobile to save space */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{
+                    width: '34px', height: '34px', borderRadius: '50%',
+                    background: '#E1F5EE', color: '#085041',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 700, fontSize: '12px', flexShrink: 0,
+                }}>
+                    {currentUser?.avatar}
+                </div>
                 {!isMobile && (
-                    <span style={{ fontSize: '14px' }}>{currentUser?.name}</span>
+                    <span style={{ fontSize: '14px', color: 'var(--text-color)' }}>
+                        {currentUser?.name}
+                    </span>
                 )}
-                <Button
-                    icon='pi pi-sign-out'
-                    rounded text severity='secondary'
-                    tooltip='Logout'
-                    tooltipOptions={{ position: 'bottom' }}
+                <div
                     onClick={handleLogout}
-                    style={{ width: '36px', height: '36px' }}
-                />
+                    style={{
+                        width: '34px', height: '34px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', borderRadius: '8px',
+                        background: 'var(--surface-ground)',
+                    }}
+                    title='Logout'
+                >
+                    <AppIcon name='logout' size={16} color='var(--text-color-secondary)' />
+                </div>
             </div>
 
         </div>
