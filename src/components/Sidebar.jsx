@@ -9,7 +9,7 @@ const allNavItems = [
     { label: 'My Bill', icon: 'pi pi-receipt', path: '/my-bill', roles: ['user'] },
     { label: 'Reports', icon: 'pi pi-chart-bar', path: '/reports', roles: ['admin', 'center'] },
     { label: 'Users', icon: 'pi pi-users', path: '/users', roles: ['admin'] },
-    { label: 'Pricing', icon: 'pi pi-tag', path: '/pricing', roles: ['admin'] },
+    { label: 'Pricing', icon: 'pi pi-tag', path: '/pricing', roles: ['admin', 'center'] },
 ]
 
 const ROLE_LABELS = {

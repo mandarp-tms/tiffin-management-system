@@ -1,4 +1,3 @@
-/* Reset Vite defaults, keep PrimeReact in control */
 *,
 *::before,
 *::after {
@@ -24,7 +23,6 @@ body {
   flex-direction: column;
 }
 
-/* Prevent horizontal scroll on mobile */
 html,
 body,
 #root {
@@ -32,22 +30,180 @@ body,
   overflow-x: hidden;
 }
 
-/* Better touch targets on mobile */
 button,
 [role="button"] {
   touch-action: manipulation;
 }
 
-/* Remove default heading margins that fight PrimeReact spacing */
 h1,
 h2,
 h3,
 h4,
 h5,
-h6 {
+h6,
+p {
   margin: 0;
 }
 
-p {
-  margin: 0;
+/* ── PrimeReact dropdown fixes ── */
+
+/* Full width inside p-fluid */
+.p-fluid .p-dropdown {
+  width: 100%;
+}
+
+/* Consistent height and padding */
+.p-dropdown {
+  height: 42px;
+  align-items: center;
+  border-radius: 8px !important;
+  border-color: var(--surface-border) !important;
+  background: var(--surface-card) !important;
+}
+
+.p-dropdown:hover {
+  border-color: var(--primary-color) !important;
+}
+
+.p-dropdown.p-focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px var(--primary-200) !important;
+}
+
+.p-dropdown .p-dropdown-label {
+  padding: 0.6rem 0.75rem;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+/* Dropdown panel */
+.p-dropdown-panel {
+  border-radius: 10px !important;
+  border: 1px solid var(--surface-border) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  overflow: hidden;
+}
+
+.p-dropdown-item {
+  font-size: 14px !important;
+  padding: 0.65rem 1rem !important;
+  border-radius: 0 !important;
+}
+
+.p-dropdown-item:hover {
+  background: var(--primary-50) !important;
+  color: var(--primary-color) !important;
+}
+
+.p-dropdown-item.p-highlight {
+  background: var(--primary-100) !important;
+  color: var(--primary-color) !important;
+  font-weight: 600 !important;
+}
+
+/* InputText consistent height */
+.p-inputtext {
+  height: 42px;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  border-color: var(--surface-border) !important;
+}
+
+.p-inputtext:hover {
+  border-color: var(--primary-color) !important;
+}
+
+.p-inputtext:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px var(--primary-200) !important;
+}
+
+/* input[type=date] fix */
+input[type='date'] {
+  width: 100%;
+  height: 42px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--surface-card);
+  color: var(--text-color);
+  outline: none;
+}
+
+input[type='date']:hover {
+  border-color: var(--primary-color);
+}
+
+input[type='date']:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-200);
+}
+
+/* number input inside pricing */
+input[type='number'] {
+  font-family: inherit;
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+/* ── PrimeReact Paginator ── */
+.p-paginator {
+  padding: 0.75rem 1rem !important;
+  border-top: 1px solid var(--surface-border) !important;
+  border-radius: 0 0 12px 12px !important;
+  background: var(--surface-card) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+}
+
+.p-paginator .p-paginator-page,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-prev,
+.p-paginator .p-paginator-first,
+.p-paginator .p-paginator-last {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--surface-border) !important;
+  background: var(--surface-card) !important;
+  color: var(--text-color) !important;
+  font-size: 13px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.15s !important;
+}
+
+.p-paginator .p-paginator-page:hover,
+.p-paginator .p-paginator-next:hover,
+.p-paginator .p-paginator-prev:hover {
+  background: var(--primary-50) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+}
+
+.p-paginator .p-paginator-page.p-highlight {
+  background: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+
+.p-paginator .p-paginator-pages {
+  display: flex !important;
+  gap: 4px !important;
+}
+
+/* Rows per page dropdown inside paginator */
+.p-paginator .p-dropdown {
+  height: 36px !important;
+  font-size: 13px !important;
 }
