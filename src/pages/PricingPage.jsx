@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { Button } from 'primereact/button'
 import { Toast } from 'primereact/toast'
 import { getPricing, updatePricing } from '../services/pricingService'
+import AppIcon from '../components/AppIcon'
 
 const PRICE_FIELDS = [
     { key: 'full', label: 'Full tiffin', sub: '3 chapati default', icon: 'pi pi-circle-fill', color: '#1D9E75', hasChapati: true },
@@ -72,16 +73,7 @@ const PricingPage = () => {
                         }}>
                             {/* Left — label */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{
-                                    width: '40px', height: '40px',
-                                    borderRadius: '10px',
-                                    background: field.color + '18',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: '18px',
-                                    flexShrink: 0,
-                                }}>
-                                    🍱
-                                </div>
+                                <AppIcon name='bag' size={20} color={field.color} />
                                 <div>
                                     <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-color)' }}>
                                         {field.label}

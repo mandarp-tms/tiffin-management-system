@@ -20,6 +20,11 @@ export const CHAPATI_OPTIONS = {
     dalrice: [],
 }
 
+export const SHIFTS = [
+    { label: '🌅 Morning', value: 'morning' },
+    { label: '🌙 Night', value: 'night' },
+]
+
 export const STATUS = {
     PENDING: 'pending',
     APPROVED: 'approved',
@@ -33,4 +38,9 @@ export const TYPE_LABELS = {
     bhakari: 'Bhakari',
     dalrice: 'Dal Rice',
     none: 'No Tiffin',
+}
+
+export const SHIFT_LABELS = {
+    morning: '🌅 Morning',
+    night: '🌙 Night',
 }

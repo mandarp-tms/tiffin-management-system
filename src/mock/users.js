@@ -2,7 +2,7 @@ export const users = [
     {
         id: 1,
         name: 'Super Admin',
-        email: 'admin@tiffin.com',
+        username: 'superadmin',
         password: 'admin123',
         role: 'admin',
         avatar: 'SA',
@@ -10,7 +10,7 @@ export const users = [
     {
         id: 2,
         name: 'Tiffin Center',
-        email: 'center@tiffin.com',
+        username: 'tiffincenter',
         password: 'center123',
         role: 'center',
         avatar: 'TC',
@@ -18,7 +18,7 @@ export const users = [
     {
         id: 3,
         name: 'Rahul Shah',
-        email: 'rahul@tiffin.com',
+        username: 'rahul',
         password: 'rahul123',
         role: 'user',
         avatar: 'RS',
@@ -26,7 +26,7 @@ export const users = [
     {
         id: 4,
         name: 'Priya Mehta',
-        email: 'priya@tiffin.com',
+        username: 'priya',
         password: 'priya123',
         role: 'user',
         avatar: 'PM',

@@ -6,13 +6,15 @@ const AuthContext = createContext(null)
 export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null)
 
-    const login = (email, password) => {
-        const found = users.find(u => u.email === email && u.password === password)
+    const login = (username, password) => {
+        const found = users.find(
+            u => u.username === username.trim().toLowerCase() && u.password === password
+        )
         if (found) {
             setCurrentUser(found)
             return { success: true, user: found }
         }
-        return { success: false, message: 'Invalid email or password' }
+        return { success: false, message: 'Invalid username or password' }
     }
 
     const logout = () => setCurrentUser(null)
