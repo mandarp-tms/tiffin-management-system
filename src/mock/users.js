@@ -6,6 +6,7 @@ export const users = [
         password: 'admin123',
         role: 'admin',
         avatar: 'SA',
+        centerId: null,
     },
     {
         id: 2,
@@ -14,6 +15,7 @@ export const users = [
         password: 'center123',
         role: 'center',
         avatar: 'TC',
+        centerId: null,
     },
     {
         id: 3,
@@ -22,6 +24,7 @@ export const users = [
         password: 'rahul123',
         role: 'user',
         avatar: 'RS',
+        centerId: 1,
     },
     {
         id: 4,
@@ -30,5 +33,6 @@ export const users = [
         password: 'priya123',
         role: 'user',
         avatar: 'PM',
+        centerId: 1,
     },
 ]

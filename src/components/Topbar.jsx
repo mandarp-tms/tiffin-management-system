@@ -11,6 +11,7 @@ const PAGE_TITLES = {
     '/pricing': 'Pricing',
     '/my-bill': 'My Bill',
     '/users': 'Customers',
+    '/tiffin-centers': 'Tiffin Centers',
 }
 
 const Topbar = ({ onHamburgerClick, isMobile }) => {
