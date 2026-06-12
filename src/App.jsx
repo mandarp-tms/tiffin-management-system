@@ -12,6 +12,7 @@ import ReportsPage from './pages/ReportsPage'
 import PricingPage from './pages/PricingPage'
 import MyBillPage from './pages/MyBillPage'
 import UsersPage from './pages/UsersPage'
+import TiffinCentersPage from './pages/TiffinCentersPage'
 
 const App = () => {
   const { currentUser } = useAuth()
@@ -31,6 +32,7 @@ const App = () => {
           <Route path='/pricing' element={<PricingPage />} />
           <Route path='/my-bill' element={<MyBillPage />} />
           <Route path='/users' element={<UsersPage />} />
+          <Route path='/tiffin-centers' element={<TiffinCentersPage />} />
         </Route>
       </Route>
 

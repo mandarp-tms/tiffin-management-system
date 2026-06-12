@@ -10,8 +10,9 @@ const allNavItems = [
     { label: 'Approvals', icon: 'approvals', path: '/approvals', roles: ['center'] },
     { label: 'My Bill', icon: 'receipt', path: '/my-bill', roles: ['user'] },
     { label: 'Reports', icon: 'chart', path: '/reports', roles: ['admin', 'center'] },
-    { label: 'Customers', icon: 'users', path: '/users', roles: ['admin'] },
-    { label: 'Pricing', icon: 'tag', path: '/pricing', roles: ['admin', 'center'] },
+    { label: 'Tiffin Centers', icon: 'users', path: '/tiffin-centers', roles: ['admin'] },
+    { label: 'Customers', icon: 'users', path: '/users', roles: ['center'] },
+    { label: 'Pricing', icon: 'tag', path: '/pricing', roles: ['center'] },
 ]
 
 const Sidebar = ({ onNavigate }) => {

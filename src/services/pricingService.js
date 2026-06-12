@@ -1,10 +1,10 @@
-import { pricing as mockPricing } from '../mock/pricing'
+import { pricingByCenter } from '../mock/pricing'
 
-let data = { ...mockPricing }
+let data = JSON.parse(JSON.stringify(pricingByCenter))
 
-export const getPricing = () => ({ ...data })
+export const getPricing = (centerId = 1) => ({ ...data[centerId] })
 
-export const updatePricing = (newPricing) => {
-    data = { ...newPricing }
-    return data
+export const updatePricing = (centerId = 1, newPricing) => {
+    data[centerId] = { ...newPricing }
+    return data[centerId]
 }
