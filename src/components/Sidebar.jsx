@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { ROLES } from '../utils/constants'
+import { ROLE_LABELS } from '../utils/constants'
 import AppIcon from './AppIcon'
 import logo from '../assets/logo.png'
 
@@ -10,15 +10,9 @@ const allNavItems = [
     { label: 'Approvals', icon: 'approvals', path: '/approvals', roles: ['center'] },
     { label: 'My Bill', icon: 'receipt', path: '/my-bill', roles: ['user'] },
     { label: 'Reports', icon: 'chart', path: '/reports', roles: ['admin', 'center'] },
-    { label: 'Users', icon: 'users', path: '/users', roles: ['admin'] },
+    { label: 'Customers', icon: 'users', path: '/users', roles: ['admin'] },
     { label: 'Pricing', icon: 'tag', path: '/pricing', roles: ['admin', 'center'] },
 ]
-
-const ROLE_LABELS = {
-    admin: 'Super Admin',
-    center: 'Tiffin Center',
-    user: 'User',
-}
 
 const Sidebar = ({ onNavigate }) => {
     const { currentUser, logout } = useAuth()
