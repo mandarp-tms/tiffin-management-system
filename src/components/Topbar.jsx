@@ -10,7 +10,7 @@ const PAGE_TITLES = {
     '/reports': 'Reports',
     '/pricing': 'Pricing',
     '/my-bill': 'My Bill',
-    '/users': 'Users',
+    '/users': 'Customers',
 }
 
 const Topbar = ({ onHamburgerClick, isMobile }) => {

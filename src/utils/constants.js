@@ -44,3 +44,9 @@ export const SHIFT_LABELS = {
     morning: '🌅 Morning',
     night: '🌙 Night',
 }
+
+export const ROLE_LABELS = {
+    admin: 'Super Admin',
+    center: 'Tiffin Center',
+    user: 'Customer',
+}

@@ -207,3 +207,9 @@ input[type='number']::-webkit-outer-spin-button {
   height: 36px !important;
   font-size: 13px !important;
 }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
