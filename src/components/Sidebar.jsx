@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { ROLE_LABELS } from '../utils/constants'
@@ -21,6 +22,7 @@ const Sidebar = ({ onNavigate }) => {
     const location = useLocation()
     const role = currentUser?.role
     const navItems = allNavItems.filter(item => item.roles.includes(role))
+    const [profileOpen, setProfileOpen] = useState(false)
 
     const handleNav = (path) => {
         navigate(path)
@@ -28,6 +30,7 @@ const Sidebar = ({ onNavigate }) => {
     }
 
     const handleLogout = () => {
+        setProfileOpen(false)
         logout()
         navigate('/login')
         if (onNavigate) onNavigate()
@@ -42,6 +45,7 @@ const Sidebar = ({ onNavigate }) => {
             display: 'flex',
             flexDirection: 'column',
             flexShrink: 0,
+            position: 'relative',   // needed for drawer positioning
         }}>
 
             {/* Brand */}
@@ -51,8 +55,7 @@ const Sidebar = ({ onNavigate }) => {
                 display: 'flex', alignItems: 'center', gap: '10px',
             }}>
                 <img
-                    src={logo}
-                    alt='Tiffin Manager'
+                    src={logo} alt='Tiffin Manager'
                     style={{ width: '32px', height: '32px', objectFit: 'contain', flexShrink: 0 }}
                 />
                 <div>
@@ -97,12 +100,130 @@ const Sidebar = ({ onNavigate }) => {
                 })}
             </nav>
 
-            {/* User + logout */}
-            <div style={{
-                padding: '0.875rem 1rem',
-                borderTop: '1px solid var(--surface-border)',
-                display: 'flex', alignItems: 'center', gap: '0.75rem',
-            }}>
+            {/* Profile drawer — slides up from bottom */}
+            {profileOpen && (
+                <>
+                    {/* Backdrop */}
+                    <div
+                        onClick={() => setProfileOpen(false)}
+                        style={{
+                            position: 'fixed', inset: 0,
+                            zIndex: 998,
+                        }}
+                    />
+                    {/* Drawer */}
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '64px',       // sits just above the footer
+                        left: '12px',
+                        right: '12px',
+                        background: 'var(--surface-card)',
+                        border: '1px solid var(--surface-border)',
+                        borderRadius: '12px',
+                        boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
+                        zIndex: 999,
+                        overflow: 'hidden',
+                        animation: 'slideUp 0.18s ease',
+                    }}>
+                        {/* User info inside drawer */}
+                        <div style={{
+                            padding: '0.875rem 1rem',
+                            borderBottom: '1px solid var(--surface-border)',
+                            display: 'flex', alignItems: 'center', gap: '0.75rem',
+                            background: 'var(--surface-ground)',
+                        }}>
+                            <div style={{
+                                width: '34px', height: '34px', borderRadius: '50%',
+                                background: '#E1F5EE', color: '#085041',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontWeight: 700, fontSize: '12px', flexShrink: 0,
+                            }}>
+                                {currentUser?.avatar}
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '13px', fontWeight: 600 }}>{currentUser?.name}</div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-color-secondary)' }}>
+                                    {ROLE_LABELS[role]}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Menu items */}
+                        {[
+                            { icon: 'pi pi-user', label: 'My Profile' },
+                            { icon: 'pi pi-bell', label: 'Notifications' },
+                            { icon: 'pi pi-cog', label: 'Settings' },
+                            { icon: 'pi pi-question-circle', label: 'Help' },
+                        ].map(item => (
+                            <div
+                                key={item.label}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '10px',
+                                    padding: '0.75rem 1rem',
+                                    fontSize: '13px',
+                                    cursor: 'pointer',
+                                    color: 'var(--text-color)',
+                                    transition: 'background 0.1s',
+                                    position: 'relative',
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-ground)'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                            >
+                                <i className={item.icon} style={{ fontSize: '14px', color: 'var(--text-color-secondary)', width: '16px' }} />
+                                {item.label}
+                                {/* Coming soon badge */}
+                                <span style={{
+                                    marginLeft: 'auto',
+                                    fontSize: '10px',
+                                    background: '#FAEEDA',
+                                    color: '#633806',
+                                    padding: '1px 7px',
+                                    borderRadius: '10px',
+                                    fontWeight: 500,
+                                }}>
+                                    Soon
+                                </span>
+                            </div>
+                        ))}
+
+                        {/* Divider + Logout */}
+                        <div style={{ borderTop: '1px solid var(--surface-border)' }}>
+                            <div
+                                onClick={handleLogout}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '10px',
+                                    padding: '0.75rem 1rem',
+                                    fontSize: '13px',
+                                    cursor: 'pointer',
+                                    color: '#A32D2D',
+                                    transition: 'background 0.1s',
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = '#FCEBEB'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                            >
+                                <AppIcon name='logout' size={14} color='#A32D2D' />
+                                Sign out
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Footer — click to open profile drawer */}
+            <div
+                onClick={() => setProfileOpen(prev => !prev)}
+                style={{
+                    padding: '0.875rem 1rem',
+                    borderTop: '1px solid var(--surface-border)',
+                    display: 'flex', alignItems: 'center', gap: '0.75rem',
+                    cursor: 'pointer',
+                    transition: 'background 0.15s',
+                    background: profileOpen ? 'var(--surface-ground)' : 'transparent',
+                    userSelect: 'none',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-ground)'}
+                onMouseLeave={e => { if (!profileOpen) e.currentTarget.style.background = 'transparent' }}
+            >
                 <div style={{
                     width: '34px', height: '34px', borderRadius: '50%',
                     background: '#E1F5EE', color: '#085041',
@@ -122,13 +243,17 @@ const Sidebar = ({ onNavigate }) => {
                         {ROLE_LABELS[role]}
                     </div>
                 </div>
-                <div
-                    onClick={handleLogout}
-                    style={{ cursor: 'pointer', padding: '4px', flexShrink: 0 }}
-                    title='Logout'
-                >
-                    <AppIcon name='logout' size={16} color='var(--text-color-secondary)' />
-                </div>
+                {/* Chevron */}
+                <i
+                    className='pi pi-chevron-up'
+                    style={{
+                        fontSize: '11px',
+                        color: 'var(--text-color-secondary)',
+                        transform: profileOpen ? 'rotate(0deg)' : 'rotate(180deg)',
+                        transition: 'transform 0.2s',
+                        flexShrink: 0,
+                    }}
+                />
             </div>
 
         </div>
