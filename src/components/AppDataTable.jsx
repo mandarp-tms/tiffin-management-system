@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import AppButton from './AppButton'
+import clsx from 'clsx'
+import styles from './AppDataTable.module.css'
 
 const AppDataTable = ({
-    columns = [],
-    data = [],
+    columns = [], data = [],
     emptyMessage = 'No records found.',
-    pageSize = 10,
-    loading = false,
+    pageSize = 10, loading = false,
 }) => {
     const [page, setPage] = useState(1)
     const totalPages = Math.ceil(data.length / pageSize)
@@ -26,29 +25,17 @@ const AppDataTable = ({
     }
 
     return (
-        <div style={{ width: '100%' }}>
-
-            {/* Table */}
-            <div style={{ overflowX: 'auto', width: '100%' }}>
-                <table style={{
-                    width: '100%',
-                    borderCollapse: 'collapse',
-                    fontSize: '13px',
-                    tableLayout: 'auto',
-                }}>
+        <div className={styles.wrapper}>
+            <div className={styles.scrollWrap}>
+                <table className={styles.table}>
                     <thead>
-                        <tr style={{ background: 'var(--surface-ground)' }}>
+                        <tr>
                             {columns.map((col, i) => (
-                                <th key={i} style={{
-                                    padding: '10px 14px',
-                                    textAlign: col.align || 'left',
-                                    color: 'var(--text-color-secondary)',
-                                    fontWeight: 500,
-                                    fontSize: '12px',
-                                    borderBottom: '1px solid var(--surface-border)',
-                                    whiteSpace: 'nowrap',
-                                    width: col.width || 'auto',
-                                }}>
+                                <th
+                                    key={i}
+                                    className={clsx(styles.th, col.align === 'right' && styles.right, col.align === 'center' && styles.center)}
+                                    style={{ width: col.width || 'auto' }}
+                                >
                                     {col.header}
                                 </th>
                             ))}
@@ -56,33 +43,23 @@ const AppDataTable = ({
                     </thead>
                     <tbody>
                         {loading && (
-                            <tr>
-                                <td colSpan={columns.length} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-color-secondary)' }}>
-                                    Loading...
-                                </td>
-                            </tr>
+                            <tr><td colSpan={columns.length} className={styles.empty}>Loading...</td></tr>
                         )}
                         {!loading && paginated.length === 0 && (
-                            <tr>
-                                <td colSpan={columns.length} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-color-secondary)' }}>
-                                    {emptyMessage}
-                                </td>
-                            </tr>
+                            <tr><td colSpan={columns.length} className={styles.empty}>{emptyMessage}</td></tr>
                         )}
                         {!loading && paginated.map((row, rIdx) => (
-                            <tr
-                                key={row.id || rIdx}
-                                style={{ borderBottom: '1px solid var(--surface-border)', transition: 'background 0.1s' }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-ground)'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                            >
+                            <tr key={row.id || rIdx} className={styles.tr}>
                                 {columns.map((col, cIdx) => (
-                                    <td key={cIdx} style={{
-                                        padding: '11px 14px',
-                                        textAlign: col.align || 'left',
-                                        whiteSpace: col.noWrap ? 'nowrap' : 'normal',
-                                        color: 'var(--text-color)',
-                                    }}>
+                                    <td
+                                        key={cIdx}
+                                        className={clsx(
+                                            styles.td,
+                                            col.align === 'right' && styles.right,
+                                            col.align === 'center' && styles.center,
+                                        )}
+                                        style={{ whiteSpace: col.noWrap ? 'nowrap' : 'normal' }}
+                                    >
                                         {col.body ? col.body(row) : row[col.field]}
                                     </td>
                                 ))}
@@ -92,79 +69,23 @@ const AppDataTable = ({
                 </table>
             </div>
 
-            {/* Paginator */}
             {totalPages > 1 && (
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.75rem 1rem',
-                    borderTop: '1px solid var(--surface-border)',
-                    flexWrap: 'wrap',
-                    gap: '0.5rem',
-                }}>
-                    {/* Info */}
-                    <span style={{ fontSize: '12px', color: 'var(--text-color-secondary)' }}>
+                <div className={styles.paginator}>
+                    <span className={styles.paginatorInfo}>
                         Showing {Math.min((page - 1) * pageSize + 1, data.length)}–{Math.min(page * pageSize, data.length)} of {data.length}
                     </span>
-
-                    {/* Pages */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-                        {/* Prev */}
-                        <button
-                            onClick={() => setPage(p => Math.max(1, p - 1))}
-                            disabled={page === 1}
-                            style={{
-                                width: '34px', height: '34px',
-                                border: '1px solid var(--surface-border)',
-                                borderRadius: '8px',
-                                background: 'var(--surface-card)',
-                                cursor: page === 1 ? 'not-allowed' : 'pointer',
-                                opacity: page === 1 ? 0.4 : 1,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '13px', color: 'var(--text-color)',
-                            }}
-                        >‹</button>
-
-                        {getPageNumbers().map((p, i) => (
+                    <div className={styles.paginatorPages}>
+                        <button className={styles.pageBtn} onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>‹</button>
+                        {getPageNumbers().map((p, i) =>
                             p === '...'
-                                ? <span key={i} style={{ padding: '0 4px', color: 'var(--text-color-secondary)', fontSize: '13px' }}>…</span>
+                                ? <span key={i} className={styles.ellipsis}>…</span>
                                 : <button
                                     key={i}
+                                    className={clsx(styles.pageBtn, p === page && styles.active)}
                                     onClick={() => setPage(p)}
-                                    style={{
-                                        width: '34px',
-                                        height: '34px',
-                                        border: `1px solid ${p === page ? 'var(--primary-color)' : 'var(--surface-border)'}`,
-                                        borderRadius: '8px',
-                                        background: p === page ? 'var(--primary-color)' : 'var(--surface-card)',
-                                        color: p === page ? '#fff' : 'var(--text-color)',
-                                        fontWeight: p === page ? 600 : 400,
-                                        cursor: 'pointer',
-                                        fontSize: '13px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        transition: 'all 0.15s',
-                                    }}
                                 >{p}</button>
-                        ))}
-
-                        {/* Next */}
-                        <button
-                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                            disabled={page === totalPages}
-                            style={{
-                                width: '34px', height: '34px',
-                                border: '1px solid var(--surface-border)',
-                                borderRadius: '8px',
-                                background: 'var(--surface-card)',
-                                cursor: page === totalPages ? 'not-allowed' : 'pointer',
-                                opacity: page === totalPages ? 0.4 : 1,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '13px', color: 'var(--text-color)',
-                            }}
-                        >›</button>
+                        )}
+                        <button className={styles.pageBtn} onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>›</button>
                     </div>
                 </div>
             )}

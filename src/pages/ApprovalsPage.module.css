@@ -1,0 +1,32 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.card {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.cardHead {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--surface-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.actions {
+    display: flex;
+    gap: 6px;
+}
+
+.amount {
+    font-weight: 600;
+    color: #0F6E56;
+}

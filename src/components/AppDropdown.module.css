@@ -1,0 +1,117 @@
+.wrapper {
+    position: relative;
+}
+
+.wrapper.fullWidth {
+    width: 100%;
+}
+
+.label {
+    font-size: 13px;
+    margin-bottom: 6px;
+    display: block;
+    color: var(--text-color);
+}
+
+.trigger {
+    height: 42px;
+    padding: 0 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border: 1px solid var(--surface-border);
+    border-radius: 8px;
+    background: var(--surface-card);
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-color);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    user-select: none;
+    width: 100%;
+}
+
+.trigger.open {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-200);
+}
+
+.trigger.disabled {
+    background: var(--surface-ground);
+    cursor: not-allowed;
+}
+
+.placeholder {
+    color: var(--text-color-secondary);
+}
+
+.triggerText {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chevron {
+    font-size: 10px;
+    color: var(--text-color-secondary);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+
+.chevron.rotated {
+    transform: rotate(180deg);
+}
+
+.panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    z-index: 999;
+    overflow: hidden;
+    max-height: 220px;
+    overflow-y: auto;
+    animation: fadeIn 0.12s ease;
+}
+
+.option {
+    padding: 0.65rem 1rem;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.1s;
+    color: var(--text-color);
+}
+
+.option:hover {
+    background: var(--surface-ground);
+}
+
+.option.selected {
+    background: var(--primary-50);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.empty {
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    color: var(--text-color-secondary);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -6,34 +6,19 @@ import { tiffins } from '../mock/tiffins'
 import { ROLES, TYPE_LABELS } from '../utils/constants'
 import { formatDate } from '../utils/formatDate'
 import { getCenterById } from '../services/tiffinCenterService'
+import styles from './DashboardPage.module.css'
 
 const DashboardPage = () => {
     const { currentUser, isRole } = useAuth()
 
-    const myTiffins = useMemo(() =>
-        tiffins.filter(t => t.userId === currentUser?.id), [currentUser])
+    const myTiffins = useMemo(() => tiffins.filter(t => t.userId === currentUser?.id), [currentUser])
+    const allApproved = useMemo(() => tiffins.filter(t => t.status === 'approved' && t.type !== 'none'), [])
+    const pending = useMemo(() => tiffins.filter(t => t.status === 'pending'), [])
+    const totalAmount = useMemo(() => allApproved.reduce((sum, t) => sum + t.amount, 0), [allApproved])
+    const myAmount = useMemo(() => myTiffins.filter(t => t.status === 'approved').reduce((sum, t) => sum + t.amount, 0), [myTiffins])
+    const recentEntries = useMemo(() => [...tiffins].reverse().slice(0, 6), [])
+    const myCenter = isRole(ROLES.USER) ? getCenterById(currentUser?.centerId) : null
 
-    const allApproved = useMemo(() =>
-        tiffins.filter(t => t.status === 'approved' && t.type !== 'none'), [])
-
-    const pending = useMemo(() =>
-        tiffins.filter(t => t.status === 'pending'), [])
-
-    const totalAmount = useMemo(() =>
-        allApproved.reduce((sum, t) => sum + t.amount, 0), [allApproved])
-
-    const myAmount = useMemo(() =>
-        myTiffins.filter(t => t.status === 'approved').reduce((sum, t) => sum + t.amount, 0), [myTiffins])
-
-    const recentEntries = useMemo(() =>
-        [...tiffins].reverse().slice(0, 6), [])
-
-    // Tiffin center for customer
-    const myCenter = isRole(ROLES.USER)
-        ? getCenterById(currentUser?.centerId)
-        : null
-
-    // Stats per role
     const stats = isRole(ROLES.ADMIN)
         ? [
             { title: 'Total tiffins (June)', value: allApproved.length, subtitle: 'Approved entries', icon: 'pi pi-shopping-bag', color: '#1D9E75' },
@@ -55,146 +40,49 @@ const DashboardPage = () => {
             ]
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div className={styles.page}>
 
             {/* Stat cards */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                gap: '1rem',
-            }}>
+            <div className={styles.statsGrid}>
                 {stats.map((s, i) => (
-                    <StatCard
-                        key={i}
-                        title={s.title}
-                        value={s.value}
-                        subtitle={s.subtitle}
-                        icon={s.icon}
-                        color={s.color}
-                    />
+                    <StatCard key={i} title={s.title} value={s.value} subtitle={s.subtitle} icon={s.icon} color={s.color} />
                 ))}
             </div>
 
             {/* Tiffin center card — customers only */}
             {isRole(ROLES.USER) && myCenter && (
-                <div style={{
-                    background: 'var(--surface-card)',
-                    border: '1px solid var(--surface-border)',
-                    borderRadius: '12px',
-                    padding: '1rem 1.25rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                }}>
-                    {/* Avatar */}
-                    <div style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '50%',
-                        background: '#EEEDFE',
-                        color: '#26215C',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 700,
-                        fontSize: '14px',
-                        flexShrink: 0,
-                    }}>
-                        {myCenter.avatar}
+                <div className={styles.centerCard}>
+                    <div className={styles.centerAvatar}>{myCenter.avatar}</div>
+                    <div className={styles.centerInfo}>
+                        <div className={styles.centerLabel}>Your tiffin center</div>
+                        <div className={styles.centerName}>{myCenter.name}</div>
+                        <div className={styles.centerSub}>{myCenter.address} · {myCenter.phone}</div>
                     </div>
-
-                    {/* Info */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{
-                            fontSize: '12px',
-                            color: 'var(--text-color-secondary)',
-                            marginBottom: '2px',
-                        }}>
-                            Your tiffin center
-                        </div>
-                        <div style={{ fontWeight: 600, fontSize: '14px' }}>
-                            {myCenter.name}
-                        </div>
-                        <div style={{
-                            fontSize: '12px',
-                            color: 'var(--text-color-secondary)',
-                            marginTop: '2px',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                        }}>
-                            {myCenter.address} · {myCenter.phone}
-                        </div>
-                    </div>
-
-                    {/* Status badge */}
-                    <StatusBadge
-                        status='active'
-                        style={{ flexShrink: 0 }}
-                    />
+                    <StatusBadge status='active' style={{ flexShrink: 0 }} />
                 </div>
             )}
 
-            {/* Recent entries table */}
-            <div style={{
-                background: 'var(--surface-card)',
-                border: '1px solid var(--surface-border)',
-                borderRadius: '12px',
-                overflow: 'hidden',
-            }}>
-                <div style={{
-                    padding: '1rem 1.25rem',
-                    borderBottom: '1px solid var(--surface-border)',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                }}>
-                    Recent entries
-                </div>
-                <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            {/* Recent entries */}
+            <div className={styles.tableCard}>
+                <div className={styles.tableHead}>Recent entries</div>
+                <div className={styles.tableWrap}>
+                    <table className={styles.table}>
                         <thead>
-                            <tr style={{ background: 'var(--surface-ground)' }}>
+                            <tr>
                                 {['Date', 'Customer', 'Type', 'Chapati', 'Amount', 'Status'].map(h => (
-                                    <th key={h} style={{
-                                        padding: '10px 14px',
-                                        textAlign: 'left',
-                                        color: 'var(--text-color-secondary)',
-                                        fontWeight: 500,
-                                        fontSize: '12px',
-                                        borderBottom: '1px solid var(--surface-border)',
-                                        whiteSpace: 'nowrap',
-                                    }}>
-                                        {h}
-                                    </th>
+                                    <th key={h} className={styles.th}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
                             {recentEntries.map(t => (
-                                <tr
-                                    key={t.id}
-                                    style={{ borderBottom: '1px solid var(--surface-border)' }}
-                                    onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-ground)'}
-                                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                                >
-                                    <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
-                                        {formatDate(t.date)}
-                                    </td>
-                                    <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
-                                        {t.userName}
-                                    </td>
-                                    <td style={{ padding: '10px 14px' }}>
-                                        <StatusBadge status={t.type} label={TYPE_LABELS[t.type]} />
-                                    </td>
-                                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                                        {t.chapatiCount || '—'}
-                                    </td>
-                                    <td style={{ padding: '10px 14px', fontWeight: 500, color: '#0F6E56' }}>
-                                        {t.amount ? `₹${t.amount}` : '—'}
-                                    </td>
-                                    <td style={{ padding: '10px 14px' }}>
-                                        <StatusBadge status={t.status} />
-                                    </td>
+                                <tr key={t.id} className={styles.tr}>
+                                    <td className={`${styles.td} ${styles.tdNoWrap}`}>{formatDate(t.date)}</td>
+                                    <td className={`${styles.td} ${styles.tdNoWrap}`}>{t.userName}</td>
+                                    <td className={styles.td}><StatusBadge status={t.type} label={TYPE_LABELS[t.type]} /></td>
+                                    <td className={`${styles.td} ${styles.tdCenter}`}>{t.chapatiCount || '—'}</td>
+                                    <td className={`${styles.td} ${styles.tdAmount}`}>{t.amount ? `₹${t.amount}` : '—'}</td>
+                                    <td className={styles.td}><StatusBadge status={t.status} /></td>
                                 </tr>
                             ))}
                         </tbody>

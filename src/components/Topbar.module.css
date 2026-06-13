@@ -1,0 +1,94 @@
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    padding: 0 1.5rem;
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--surface-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+.topbar.mobile {
+    padding: 0 1rem;
+}
+
+.left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.hamburger {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 8px;
+    background: var(--surface-ground);
+    border: none;
+    flex-shrink: 0;
+}
+
+.logo {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+}
+
+.title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.title.mobile {
+    font-size: 15px;
+}
+
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #E1F5EE;
+    color: #085041;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.userName {
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+.logoutBtn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 8px;
+    background: var(--surface-ground);
+    border: none;
+    transition: background 0.15s;
+}
+
+.logoutBtn:hover {
+    background: var(--surface-border);
+}

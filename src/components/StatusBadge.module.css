@@ -1,0 +1,68 @@
+.badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.approved {
+    background: #E1F5EE;
+    color: #085041;
+}
+
+.pending {
+    background: #FAEEDA;
+    color: #633806;
+}
+
+.rejected {
+    background: #FCEBEB;
+    color: #791F1F;
+}
+
+.active {
+    background: #E1F5EE;
+    color: #085041;
+}
+
+.morning {
+    background: #E6F1FB;
+    color: #042C53;
+}
+
+.night {
+    background: #EEEDFE;
+    color: #26215C;
+}
+
+.full {
+    background: #E1F5EE;
+    color: #085041;
+}
+
+.half {
+    background: #EEEDFE;
+    color: #3C3489;
+}
+
+.chapati {
+    background: #FAEEDA;
+    color: #633806;
+}
+
+.bhakari {
+    background: #E6F1FB;
+    color: #0C447C;
+}
+
+.dalrice {
+    background: #FAECE7;
+    color: #712B13;
+}
+
+.none {
+    background: #F1EFE8;
+    color: #2C2C2A;
+}

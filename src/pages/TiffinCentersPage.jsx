@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { FaTimes, FaUsers, FaTag } from 'react-icons/fa'
+import clsx from 'clsx'
 import AppButton from '../components/AppButton'
 import AppDataTable from '../components/AppDataTable'
 import StatusBadge from '../components/StatusBadge'
@@ -7,8 +8,8 @@ import { getAllCenters, getCustomersByCenter, getCenterStats } from '../services
 import { getPricing, updatePricing } from '../services/pricingService'
 import { getAllTiffins } from '../services/tiffinService'
 import { TYPE_LABELS } from '../utils/constants'
+import styles from './TiffinCentersPage.module.css'
 
-// ── Pricing Modal ──────────────────────────────────────────────
 const PRICE_FIELDS = [
     { key: 'full', label: 'Full tiffin', sub: '3 chapati default', hasChapati: true },
     { key: 'half', label: 'Half tiffin', sub: '2 chapati default', hasChapati: true },
@@ -17,28 +18,13 @@ const PRICE_FIELDS = [
     { key: 'dalrice', label: 'Dal rice', sub: 'Fixed price', hasChapati: false },
 ]
 
+// ── Shared modal wrapper ───────────────────────────────────────
 const ModalWrap = ({ onClose, children, maxWidth = '480px' }) => (
-    <div
-        onClick={onClose}
-        style={{
-            position: 'fixed', inset: 0,
-            background: 'rgba(0,0,0,0.45)',
-            zIndex: 1100,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '1rem',
-        }}
-    >
+    <div className={styles.modalOverlay} onClick={onClose}>
         <div
+            className={styles.modal}
+            style={{ maxWidth }}
             onClick={e => e.stopPropagation()}
-            style={{
-                background: 'var(--surface-card)',
-                borderRadius: '14px',
-                width: '100%', maxWidth,
-                maxHeight: '90vh',
-                overflowY: 'auto',
-                border: '1px solid var(--surface-border)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-            }}
         >
             {children}
         </div>
@@ -46,23 +32,18 @@ const ModalWrap = ({ onClose, children, maxWidth = '480px' }) => (
 )
 
 const ModalHeader = ({ title, sub, onClose }) => (
-    <div style={{
-        padding: '1rem 1.25rem',
-        borderBottom: '1px solid var(--surface-border)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        position: 'sticky', top: 0,
-        background: 'var(--surface-card)', zIndex: 1,
-    }}>
+    <div className={styles.modalHeader}>
         <div>
-            <div style={{ fontWeight: 600, fontSize: '15px' }}>{title}</div>
-            {sub && <div style={{ fontSize: '12px', color: 'var(--text-color-secondary)', marginTop: '2px' }}>{sub}</div>}
+            <div className={styles.modalTitle}>{title}</div>
+            {sub && <div className={styles.modalSub}>{sub}</div>}
         </div>
-        <div onClick={onClose} style={{ cursor: 'pointer', padding: '6px' }}>
+        <div className={styles.modalClose} onClick={onClose}>
             <FaTimes size={15} color='var(--text-color-secondary)' />
         </div>
     </div>
 )
 
+// ── Pricing Modal ──────────────────────────────────────────────
 const PricingModal = ({ center, onClose }) => {
     const [prices, setPrices] = useState(() => getPricing(center.id))
     const [saved, setSaved] = useState(false)
@@ -89,42 +70,22 @@ const PricingModal = ({ center, onClose }) => {
                 onClose={onClose}
             />
 
-            <div style={{
-                margin: '1rem 1.25rem 0',
-                background: '#E6F1FB', borderRadius: '8px',
-                padding: '0.65rem 0.85rem',
-                fontSize: '12px', color: '#042C53',
-            }}>
+            <div className={styles.modalInfoBanner}>
                 Each chapati below default reduces price by <strong>₹5</strong>
             </div>
 
-            <div style={{ padding: '0.75rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className={styles.pricingList}>
                 {PRICE_FIELDS.map(field => (
-                    <div key={field.key} style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '0.875rem 1rem',
-                        background: 'var(--surface-ground)',
-                        borderRadius: '10px',
-                        gap: '1rem',
-                    }}>
+                    <div key={field.key} className={styles.pricingRow}>
                         <div>
-                            <div style={{ fontSize: '14px', fontWeight: 500 }}>{field.label}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-color-secondary)', marginTop: '2px' }}>
-                                {field.sub}
-                            </div>
+                            <div className={styles.pricingLabel}>{field.label}</div>
+                            <div className={styles.pricingSub}>{field.sub}</div>
                         </div>
-                        <div style={{
-                            display: 'flex', alignItems: 'center', gap: '6px',
-                            background: 'var(--surface-card)',
-                            border: '1px solid var(--surface-border)',
-                            borderRadius: '8px', padding: '6px 10px',
-                            minWidth: '100px',
-                        }}>
-                            <span style={{ color: 'var(--text-color-secondary)', fontWeight: 600 }}>₹</span>
+                        <div className={styles.pricingInput}>
+                            <span className={styles.rupeeSign}>₹</span>
                             <input
                                 type='number'
+                                className={styles.numberInput}
                                 value={getValue(field.key) ?? ''}
                                 min={0} max={999}
                                 onChange={e => updateField(
@@ -132,29 +93,15 @@ const PricingModal = ({ center, onClose }) => {
                                     field.hasChapati ? 'base' : 'fixed',
                                     Number(e.target.value)
                                 )}
-                                style={{
-                                    width: '60px', border: 'none', outline: 'none',
-                                    background: 'transparent', fontSize: '18px',
-                                    fontWeight: 700, color: 'var(--primary-color)',
-                                    textAlign: 'right', fontFamily: 'inherit',
-                                }}
                             />
                         </div>
                     </div>
                 ))}
             </div>
 
-            <div style={{
-                padding: '1rem 1.25rem',
-                borderTop: '1px solid var(--surface-border)',
-                display: 'flex', gap: '0.75rem', justifyContent: 'flex-end',
-            }}>
+            <div className={styles.modalFooter}>
                 <AppButton label='Cancel' variant='secondary' onClick={onClose} />
-                <AppButton
-                    label={saved ? 'Saved ✓' : 'Save pricing'}
-                    variant={saved ? 'success' : 'primary'}
-                    onClick={handleSave}
-                />
+                <AppButton label={saved ? 'Saved ✓' : 'Save pricing'} variant={saved ? 'success' : 'primary'} onClick={handleSave} />
             </div>
         </ModalWrap>
     )
@@ -171,11 +118,19 @@ const CustomersModal = ({ center, onClose }) => {
         const pending = mine.filter(t => t.status === 'pending')
         const total = approved.reduce((s, t) => s + t.amount, 0)
         const typeCounts = approved.reduce((acc, t) => {
-            acc[t.type] = (acc[t.type] || 0) + 1; return acc
+            acc[t.type] = (acc[t.type] || 0) + 1
+            return acc
         }, {})
         const favouriteType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
         return { ...u, approved: approved.length, pending: pending.length, total, favouriteType }
     })
+
+    const statCells = (u) => [
+        { label: 'Amount due', value: `₹${u.total}`, color: '#0F6E56' },
+        { label: 'Tiffins', value: u.approved, color: 'var(--text-color)' },
+        { label: 'Pending', value: u.pending, color: '#BA7517' },
+        { label: 'Favourite', value: TYPE_LABELS[u.favouriteType] || '—', color: '#534AB7' },
+    ]
 
     return (
         <ModalWrap onClose={onClose} maxWidth='600px'>
@@ -185,67 +140,40 @@ const CustomersModal = ({ center, onClose }) => {
                 onClose={onClose}
             />
 
-            <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className={styles.customerList}>
                 {stats.length === 0 && (
-                    <div style={{
-                        textAlign: 'center', padding: '2rem',
-                        color: 'var(--text-color-secondary)', fontSize: '14px',
-                    }}>
-                        No customers assigned to this center yet.
-                    </div>
+                    <div className={styles.emptyState}>No customers assigned to this center yet.</div>
                 )}
 
                 {stats.map(u => (
-                    <div key={u.id} style={{
-                        border: '1px solid var(--surface-border)',
-                        borderRadius: '12px', overflow: 'hidden',
-                    }}>
-                        {/* Header */}
-                        <div style={{
-                            padding: '1rem',
-                            display: 'flex', alignItems: 'center', gap: '0.875rem',
-                            borderBottom: '1px solid var(--surface-border)',
-                            background: 'var(--surface-ground)',
-                        }}>
-                            <div style={{
-                                width: '40px', height: '40px', borderRadius: '50%',
-                                background: '#E1F5EE', color: '#085041',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontWeight: 700, fontSize: '14px', flexShrink: 0,
-                            }}>
-                                {u.avatar}
-                            </div>
-                            <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 600, fontSize: '14px' }}>{u.name}</div>
-                                <div style={{ fontSize: '12px', color: 'var(--text-color-secondary)', marginTop: '2px' }}>
-                                    @{u.username}
-                                </div>
+                    <div key={u.id} className={styles.customerCard}>
+
+                        <div className={styles.customerHead}>
+                            <div className={styles.customerAvatar}>{u.avatar}</div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <div className={styles.customerName}>{u.name}</div>
+                                <div className={styles.customerUsername}>@{u.username}</div>
                             </div>
                             <StatusBadge status='active' />
                         </div>
 
-                        {/* Stats */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)' }}>
-                            {[
-                                { label: 'Amount due', value: `₹${u.total}`, color: '#0F6E56' },
-                                { label: 'Tiffins', value: u.approved, color: 'var(--text-color)' },
-                                { label: 'Pending', value: u.pending, color: '#BA7517' },
-                                { label: 'Favourite', value: TYPE_LABELS[u.favouriteType] || '—', color: '#534AB7' },
-                            ].map((stat, i) => (
-                                <div key={stat.label} style={{
-                                    padding: '0.75rem',
-                                    borderRight: i < 3 ? '1px solid var(--surface-border)' : 'none',
-                                    textAlign: 'center',
-                                }}>
-                                    <div style={{ fontSize: '10px', color: 'var(--text-color-secondary)', marginBottom: '4px' }}>
-                                        {stat.label}
-                                    </div>
-                                    <div style={{ fontSize: '16px', fontWeight: 700, color: stat.color }}>
+                        <div className={styles.customerStats}>
+                            {statCells(u).map((stat, i) => (
+                                <div
+                                    key={stat.label}
+                                    className={clsx(
+                                        styles.customerStatCell,
+                                        i < 3 && styles.borderRight,
+                                    )}
+                                >
+                                    <div className={styles.customerStatLabel}>{stat.label}</div>
+                                    <div className={styles.customerStatValue} style={{ color: stat.color }}>
                                         {stat.value}
                                     </div>
                                 </div>
                             ))}
                         </div>
+
                     </div>
                 ))}
             </div>
@@ -266,31 +194,18 @@ const TiffinCentersPage = () => {
         {
             header: 'Tiffin Center',
             body: row => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{
-                        width: '36px', height: '36px', borderRadius: '50%',
-                        background: '#EEEDFE', color: '#26215C',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 700, fontSize: '12px', flexShrink: 0,
-                    }}>
-                        {row.avatar}
-                    </div>
+                <div className={styles.centerCell}>
+                    <div className={styles.centerAvatar}>{row.avatar}</div>
                     <div>
-                        <div style={{ fontWeight: 600, fontSize: '14px' }}>{row.name}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--text-color-secondary)' }}>
-                            {row.address}
-                        </div>
+                        <div className={styles.centerName}>{row.name}</div>
+                        <div className={styles.centerAddress}>{row.address}</div>
                     </div>
                 </div>
             ),
         },
         {
             header: 'Phone',
-            body: row => (
-                <span style={{ fontSize: '13px', color: 'var(--text-color-secondary)' }}>
-                    {row.phone}
-                </span>
-            ),
+            body: row => <span className={styles.centerAddress}>{row.phone}</span>,
         },
         {
             header: 'Status',
@@ -300,12 +215,8 @@ const TiffinCentersPage = () => {
             header: 'This month',
             body: row => (
                 <div>
-                    <div style={{ fontWeight: 600, color: '#0F6E56', fontSize: '14px' }}>
-                        ₹{row.totalAmount}
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-color-secondary)', marginTop: '2px' }}>
-                        {row.tiffinCount} tiffins
-                    </div>
+                    <div className={styles.amountValue}>₹{row.totalAmount}</div>
+                    <div className={styles.amountSub}>{row.tiffinCount} tiffins</div>
                 </div>
             ),
         },
@@ -337,23 +248,14 @@ const TiffinCentersPage = () => {
     ]
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div className={styles.page}>
 
-            {/* Header */}
-            <div>
-                <div style={{ fontSize: '15px', fontWeight: 600 }}>Tiffin Centers</div>
-                <div style={{ fontSize: '13px', color: 'var(--text-color-secondary)', marginTop: '2px' }}>
-                    {tableData.length} center{tableData.length !== 1 ? 's' : ''} registered
-                </div>
+            <div className={styles.header}>
+                <div className={styles.title}>Tiffin Centers</div>
+                <div className={styles.sub}>{tableData.length} center{tableData.length !== 1 ? 's' : ''} registered</div>
             </div>
 
-            {/* Hierarchy banner */}
-            <div style={{
-                background: '#EEEDFE', border: '1px solid #C5C2F5',
-                borderRadius: '10px', padding: '0.75rem 1rem',
-                fontSize: '13px', color: '#26215C',
-                display: 'flex', alignItems: 'center', gap: '8px',
-            }}>
+            <div className={styles.banner}>
                 <span>🏗️</span>
                 <span>
                     <strong>Super Admin</strong> → Tiffin Center → Customers.
@@ -361,19 +263,8 @@ const TiffinCentersPage = () => {
                 </span>
             </div>
 
-            {/* Centers table */}
-            <div style={{
-                background: 'var(--surface-card)',
-                border: '1px solid var(--surface-border)',
-                borderRadius: '12px', overflow: 'hidden',
-            }}>
-                <div style={{
-                    padding: '1rem 1.25rem',
-                    borderBottom: '1px solid var(--surface-border)',
-                    fontWeight: 600, fontSize: '14px',
-                }}>
-                    Registered tiffin centers
-                </div>
+            <div className={styles.tableCard}>
+                <div className={styles.tableHead}>Registered tiffin centers</div>
                 <AppDataTable
                     columns={columns}
                     data={tableData}
@@ -382,9 +273,9 @@ const TiffinCentersPage = () => {
                 />
             </div>
 
-            {/* Modals */}
             {pricingModal && <PricingModal center={pricingModal} onClose={() => setPricingModal(null)} />}
             {customersModal && <CustomersModal center={customersModal} onClose={() => setCustomersModal(null)} />}
+
         </div>
     )
 }

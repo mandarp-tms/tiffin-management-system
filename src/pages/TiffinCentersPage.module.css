@@ -1,0 +1,289 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.header {}
+
+.title {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.sub {
+    font-size: 13px;
+    color: var(--text-color-secondary);
+    margin-top: 2px;
+}
+
+.banner {
+    background: #EEEDFE;
+    border: 1px solid #C5C2F5;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    color: #26215C;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tableCard {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.tableHead {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--surface-border);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.centerCell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.centerAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #EEEDFE;
+    color: #26215C;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.centerName {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.centerAddress {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+}
+
+.amountValue {
+    font-weight: 600;
+    color: #0F6E56;
+    font-size: 14px;
+}
+
+.amountSub {
+    font-size: 11px;
+    color: var(--text-color-secondary);
+    margin-top: 2px;
+}
+
+/* Modal shared */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal {
+    background: var(--surface-card);
+    border-radius: 14px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 1px solid var(--surface-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.modalHeader {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--surface-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--surface-card);
+    z-index: 1;
+}
+
+.modalTitle {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.modalSub {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+    margin-top: 2px;
+}
+
+.modalClose {
+    cursor: pointer;
+    padding: 6px;
+}
+
+.modalInfoBanner {
+    margin: 1rem 1.25rem 0;
+    background: #E6F1FB;
+    border-radius: 8px;
+    padding: 0.65rem 0.85rem;
+    font-size: 12px;
+    color: #042C53;
+}
+
+.pricingList {
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.pricingRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    background: var(--surface-ground);
+    border-radius: 10px;
+    gap: 1rem;
+}
+
+.pricingLabel {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.pricingSub {
+    font-size: 11px;
+    color: var(--text-color-secondary);
+    margin-top: 2px;
+}
+
+.pricingInput {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    min-width: 100px;
+}
+
+.rupeeSign {
+    color: var(--text-color-secondary);
+    font-weight: 600;
+}
+
+.numberInput {
+    width: 60px;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-align: right;
+    font-family: inherit;
+}
+
+.modalFooter {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--surface-border);
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+/* Customer cards inside modal */
+.customerList {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.customerCard {
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.customerHead {
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    border-bottom: 1px solid var(--surface-border);
+    background: var(--surface-ground);
+}
+
+.customerAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #E1F5EE;
+    color: #085041;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.customerName {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.customerUsername {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+    margin-top: 2px;
+}
+
+.customerStats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.customerStatCell {
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.customerStatCell.borderRight {
+    border-right: 1px solid var(--surface-border);
+}
+
+.customerStatLabel {
+    font-size: 10px;
+    color: var(--text-color-secondary);
+    margin-bottom: 4px;
+}
+
+.customerStatValue {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-color-secondary);
+    font-size: 14px;
+}
