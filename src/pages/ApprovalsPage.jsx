@@ -1,12 +1,13 @@
 import { useState, useRef } from 'react'
 import { Toast } from 'primereact/toast'
+import { FaCheck, FaTimes } from 'react-icons/fa'
 import AppDataTable from '../components/AppDataTable'
 import AppButton from '../components/AppButton'
 import StatusBadge from '../components/StatusBadge'
 import { getPendingTiffins, approveTiffin, rejectTiffin } from '../services/tiffinService'
 import { TYPE_LABELS } from '../utils/constants'
 import { formatDate } from '../utils/formatDate'
-import { FaCheck, FaTimes } from 'react-icons/fa'
+import styles from './ApprovalsPage.module.css'
 
 const ApprovalsPage = () => {
     const toast = useRef(null)
@@ -32,13 +33,13 @@ const ApprovalsPage = () => {
         { header: 'Shift', body: row => <StatusBadge status={row.shift || 'morning'} /> },
         { header: 'Type', body: row => <StatusBadge status={row.type} label={TYPE_LABELS[row.type]} /> },
         { header: 'Chapati', body: row => row.chapatiCount || '—', align: 'center' },
-        { header: 'Amount', body: row => <span style={{ fontWeight: 600, color: '#0F6E56' }}>₹{row.amount}</span> },
+        { header: 'Amount', body: row => <span className={styles.amount}>₹{row.amount}</span> },
         { header: 'Status', body: row => <StatusBadge status={row.status} /> },
         {
             header: 'Actions',
             width: '200px',
             body: row => (
-                <div style={{ display: 'flex', gap: '6px' }}>
+                <div className={styles.actions}>
                     <AppButton
                         label='Approve'
                         icon={<FaCheck />}
@@ -59,20 +60,12 @@ const ApprovalsPage = () => {
     ]
 
     return (
-        <div>
+        <div className={styles.page}>
             <Toast ref={toast} />
-            <div style={{
-                background: 'var(--surface-card)',
-                border: '1px solid var(--surface-border)',
-                borderRadius: '12px',
-                overflow: 'hidden',
-            }}>
-                <div style={{
-                    padding: '1rem 1.25rem',
-                    borderBottom: '1px solid var(--surface-border)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                }}>
-                    <span style={{ fontWeight: 600, fontSize: '14px' }}>Pending approvals</span>
+
+            <div className={styles.card}>
+                <div className={styles.cardHead}>
+                    <span>Pending approvals</span>
                     <StatusBadge status='pending' label={`${data.length} pending`} />
                 </div>
                 <AppDataTable
@@ -82,6 +75,7 @@ const ApprovalsPage = () => {
                     pageSize={10}
                 />
             </div>
+
         </div>
     )
 }

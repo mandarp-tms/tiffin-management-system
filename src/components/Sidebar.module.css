@@ -1,0 +1,209 @@
+.sidebar {
+    width: 220px;
+    height: 100vh;
+    background: var(--surface-card);
+    border-right: 1px solid var(--surface-border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.brand {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid var(--surface-border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brandLogo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.brandName {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary-color);
+    line-height: 1.2;
+}
+
+.brandRole {
+    font-size: 11px;
+    color: var(--text-color-secondary);
+    margin-top: 2px;
+}
+
+.nav {
+    flex: 1;
+    padding: 0.5rem 0;
+    overflow-y: auto;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    background: transparent;
+    color: var(--text-color);
+    font-weight: 400;
+    font-size: 14px;
+    transition: all 0.15s;
+    user-select: none;
+}
+
+.navItem:hover {
+    background: var(--surface-ground);
+}
+
+.navItem.active {
+    border-left-color: var(--primary-color);
+    background: var(--primary-50);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Profile footer */
+.footer {
+    padding: 0.875rem 1rem;
+    border-top: 1px solid var(--surface-border);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    user-select: none;
+}
+
+.footer:hover {
+    background: var(--surface-ground);
+}
+
+.footer.open {
+    background: var(--surface-ground);
+}
+
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #E1F5EE;
+    color: #085041;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.footerName {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.footerRole {
+    font-size: 11px;
+    color: var(--text-color-secondary);
+}
+
+.chevron {
+    font-size: 11px;
+    color: var(--text-color-secondary);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+
+.chevron.rotated {
+    transform: rotate(180deg);
+}
+
+/* Profile drawer */
+.drawer {
+    position: absolute;
+    bottom: 64px;
+    left: 12px;
+    right: 12px;
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
+    z-index: 999;
+    overflow: hidden;
+    animation: slideUp 0.18s ease;
+}
+
+.drawerHeader {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--surface-border);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--surface-ground);
+}
+
+.drawerItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-color);
+    transition: background 0.1s;
+    position: relative;
+}
+
+.drawerItem:hover {
+    background: var(--surface-ground);
+}
+
+.comingSoon {
+    margin-left: auto;
+    font-size: 10px;
+    background: #FAEEDA;
+    color: #633806;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.drawerDivider {
+    border-top: 1px solid var(--surface-border);
+}
+
+.logoutItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    cursor: pointer;
+    color: #A32D2D;
+    transition: background 0.1s;
+}
+
+.logoutItem:hover {
+    background: #FCEBEB;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,122 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.centerCard {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.centerAvatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #EEEDFE;
+    color: #26215C;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.centerInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.centerLabel {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+    margin-bottom: 2px;
+}
+
+.centerName {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.centerSub {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tableCard {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.tableHead {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--surface-border);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.tableWrap {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.th {
+    padding: 10px 14px;
+    text-align: left;
+    color: var(--text-color-secondary);
+    font-weight: 500;
+    font-size: 12px;
+    border-bottom: 1px solid var(--surface-border);
+    white-space: nowrap;
+    background: var(--surface-ground);
+}
+
+.tr {
+    border-bottom: 1px solid var(--surface-border);
+    transition: background 0.1s;
+}
+
+.tr:hover {
+    background: var(--surface-ground);
+}
+
+.td {
+    padding: 10px 14px;
+    color: var(--text-color);
+}
+
+.tdNoWrap {
+    white-space: nowrap;
+}
+
+.tdCenter {
+    text-align: center;
+}
+
+.tdAmount {
+    font-weight: 500;
+    color: #0F6E56;
+}

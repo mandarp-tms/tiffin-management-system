@@ -1,0 +1,126 @@
+.wrapper {
+    width: 100%;
+}
+
+.scrollWrap {
+    overflow-x: auto;
+    width: 100%;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    table-layout: auto;
+}
+
+.th {
+    padding: 10px 14px;
+    text-align: left;
+    color: var(--text-color-secondary);
+    font-weight: 500;
+    font-size: 12px;
+    border-bottom: 1px solid var(--surface-border);
+    white-space: nowrap;
+    background: var(--surface-ground);
+}
+
+.th.right {
+    text-align: right;
+}
+
+.th.center {
+    text-align: center;
+}
+
+.tr {
+    border-bottom: 1px solid var(--surface-border);
+    transition: background 0.1s;
+}
+
+.tr:hover {
+    background: var(--surface-ground);
+}
+
+.td {
+    padding: 11px 14px;
+    color: var(--text-color);
+}
+
+.td.right {
+    text-align: right;
+}
+
+.td.center {
+    text-align: center;
+}
+
+.empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-color-secondary);
+    font-size: 13px;
+}
+
+/* Paginator */
+.paginator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--surface-border);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.paginatorInfo {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+}
+
+.paginatorPages {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.pageBtn {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--surface-border);
+    border-radius: 8px;
+    background: var(--surface-card);
+    color: var(--text-color);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+}
+
+.pageBtn:hover:not(:disabled) {
+    background: var(--primary-50);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.pageBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pageBtn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+    font-weight: 600;
+}
+
+.ellipsis {
+    padding: 0 4px;
+    color: var(--text-color-secondary);
+    font-size: 13px;
+}

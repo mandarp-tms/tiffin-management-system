@@ -3,6 +3,7 @@ import { getTiffinUsers } from '../services/userService'
 import { getAllTiffins } from '../services/tiffinService'
 import { TYPE_LABELS } from '../utils/constants'
 import StatusBadge from '../components/StatusBadge'
+import styles from './UsersPage.module.css'
 
 const UsersPage = () => {
     const customers = getTiffinUsers()
@@ -23,75 +24,58 @@ const UsersPage = () => {
         })
     }, [])
 
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    const statCells = (u) => [
+        { label: 'Amount due', value: `₹${u.total}`, color: '#0F6E56' },
+        { label: 'Tiffins taken', value: u.approved, color: 'var(--text-color)' },
+        { label: 'Pending', value: u.pending, color: '#BA7517' },
+        { label: 'Favourite', value: TYPE_LABELS[u.favouriteType] || '—', color: '#534AB7' },
+    ]
 
-            <div>
-                <div style={{ fontSize: '15px', fontWeight: 600 }}>Customers</div>
-                <div style={{ fontSize: '13px', color: 'var(--text-color-secondary)', marginTop: '2px' }}>
-                    {customers.length} active customers this month
-                </div>
+    return (
+        <div className={styles.page}>
+
+            <div className={styles.header}>
+                <div className={styles.title}>Customers</div>
+                <div className={styles.sub}>{customers.length} active customers this month</div>
             </div>
 
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                gap: '1rem',
-            }}>
+            <div className={styles.grid}>
                 {customerStats.map(u => (
-                    <div key={u.id} style={{
-                        background: 'var(--surface-card)',
-                        border: '1px solid var(--surface-border)',
-                        borderRadius: '14px', overflow: 'hidden',
-                    }}>
-                        {/* Header */}
-                        <div style={{
-                            padding: '1.25rem',
-                            display: 'flex', alignItems: 'center', gap: '1rem',
-                            borderBottom: '1px solid var(--surface-border)',
-                        }}>
-                            <div style={{
-                                width: '48px', height: '48px', borderRadius: '50%',
-                                background: '#E1F5EE', color: '#085041',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontWeight: 700, fontSize: '16px', flexShrink: 0,
-                            }}>
-                                {u.avatar}
-                            </div>
+                    <div key={u.id} className={styles.card}>
+
+                        {/* Card header */}
+                        <div className={styles.cardHead}>
+                            <div className={styles.avatar}>{u.avatar}</div>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontWeight: 600, fontSize: '15px' }}>{u.name}</div>
-                                <div style={{ fontSize: '12px', color: 'var(--text-color-secondary)', marginTop: '2px' }}>
-                                    @{u.username}
-                                </div>
+                                <div className={styles.name}>{u.name}</div>
+                                <div className={styles.username}>@{u.username}</div>
                             </div>
                             <StatusBadge status='active' />
                         </div>
 
-                        {/* Stats */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-                            {[
-                                { label: 'Amount due', value: `₹${u.total}`, color: '#0F6E56' },
-                                { label: 'Tiffins taken', value: u.approved, color: 'var(--text-color)' },
-                                { label: 'Pending', value: u.pending, color: '#BA7517' },
-                                { label: 'Favourite', value: TYPE_LABELS[u.favouriteType] || '—', color: '#534AB7' },
-                            ].map((stat, i) => (
-                                <div key={stat.label} style={{
-                                    padding: '1rem',
-                                    borderRight: i % 2 === 0 ? '1px solid var(--surface-border)' : 'none',
-                                    borderBottom: i < 2 ? '1px solid var(--surface-border)' : 'none',
-                                }}>
-                                    <div style={{ fontSize: '11px', color: 'var(--text-color-secondary)', marginBottom: '4px' }}>
-                                        {stat.label}
-                                    </div>
-                                    <div style={{ fontSize: '18px', fontWeight: 700, color: stat.color }}>
+                        {/* Stats grid */}
+                        <div className={styles.statsGrid}>
+                            {statCells(u).map((stat, i) => (
+                                <div
+                                    key={stat.label}
+                                    className={`
+                    ${styles.statCell}
+                    ${i % 2 === 0 ? styles.borderRight : ''}
+                    ${i < 2 ? styles.borderBottom : ''}
+                  `}
+                                >
+                                    <div className={styles.statCellLabel}>{stat.label}</div>
+                                    <div className={styles.statCellValue} style={{ color: stat.color }}>
                                         {stat.value}
                                     </div>
                                 </div>
                             ))}
                         </div>
+
                     </div>
                 ))}
             </div>
+
         </div>
     )
 }

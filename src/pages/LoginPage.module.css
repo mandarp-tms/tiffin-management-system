@@ -1,0 +1,79 @@
+.page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-ground);
+    padding: 1rem;
+}
+
+.card {
+    background: var(--surface-card);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 380px;
+    border: 1px solid var(--surface-border);
+}
+
+.brand {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.brandLogo {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    margin-bottom: 0.5rem;
+}
+
+.brandTitle {
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--text-color);
+    margin-bottom: 4px;
+}
+
+.brandSub {
+    color: var(--text-color-secondary);
+    font-size: 14px;
+}
+
+.hint {
+    background: var(--surface-ground);
+    border-radius: 8px;
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 1.25rem;
+    font-size: 12px;
+    color: var(--text-color-secondary);
+    line-height: 1.6;
+}
+
+.hintTitle {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text-color);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+}
+
+.label {
+    font-size: 13px;
+    margin-bottom: 6px;
+    display: block;
+    color: var(--text-color);
+}
+
+.submitBtn {
+    margin-top: 0.5rem;
+}

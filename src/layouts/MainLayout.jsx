@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
+import clsx from 'clsx'
 import Sidebar from '../components/Sidebar'
 import Topbar from '../components/Topbar'
+import styles from './MainLayout.module.css'
 
 const MainLayout = () => {
     const [drawerOpen, setDrawerOpen] = useState(false)
@@ -20,58 +22,26 @@ const MainLayout = () => {
     const closeDrawer = () => setDrawerOpen(false)
 
     return (
-        <div style={{
-            display: 'flex',
-            height: '100vh',        // ← fixed height, not minHeight
-            overflow: 'hidden',     // ← prevent whole page scroll
-            background: 'var(--surface-ground)',
-        }}>
+        <div className={styles.layout}>
 
-            {/* Desktop sidebar */}
             {!isMobile && <Sidebar />}
 
-            {/* Mobile overlay */}
             {isMobile && drawerOpen && (
-                <div onClick={closeDrawer} style={{
-                    position: 'fixed', inset: 0,
-                    background: 'rgba(0,0,0,0.45)',
-                    zIndex: 999,
-                }} />
+                <div className={styles.overlay} onClick={closeDrawer} />
             )}
 
-            {/* Mobile drawer */}
             {isMobile && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0,
-                    height: '100vh', zIndex: 1000,
-                    transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
-                    transition: 'transform 0.25s ease',
-                }}>
+                <div className={clsx(styles.drawer, drawerOpen ? styles.open : styles.closed)}>
                     <Sidebar onNavigate={closeDrawer} />
                 </div>
             )}
 
-            {/* Right side — topbar + scrollable content */}
-            <div style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                minWidth: 0,
-                height: '100vh',      // ← full height
-                overflow: 'hidden',   // ← don't let this scroll
-            }}>
-                {/* Topbar — fixed, never scrolls */}
+            <div className={styles.right}>
                 <Topbar
                     onHamburgerClick={() => setDrawerOpen(prev => !prev)}
                     isMobile={isMobile}
                 />
-
-                {/* Only this part scrolls */}
-                <main style={{
-                    flex: 1,
-                    overflowY: 'auto',    // ← ONLY outlet scrolls
-                    padding: isMobile ? '1rem' : '1.5rem',
-                }}>
+                <main className={clsx(styles.main, isMobile && styles.mobile)}>
                     <Outlet />
                 </main>
             </div>
