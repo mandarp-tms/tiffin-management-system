@@ -1,12 +1,22 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 import { getTiffinUsers } from '../services/userService'
 import { getAllTiffins } from '../services/tiffinService'
-import { TYPE_LABELS } from '../utils/constants'
+import { getPayment, calculateTotalDue } from '../services/paymentService'
+import { TYPE_LABELS, ROLES } from '../utils/constants'
 import StatusBadge from '../components/StatusBadge'
+import AppButton from '../components/AppButton'
+import PaymentModal from './PaymentModal'
+import { FaRupeeSign } from 'react-icons/fa'
 import styles from './UsersPage.module.css'
 
+const CURRENT_MONTH = 6
+const CURRENT_YEAR = 2025
+
 const UsersPage = () => {
+    const { isRole } = useAuth()
     const customers = getTiffinUsers()
+    const [paymentModal, setPaymentModal] = useState(null)
 
     const customerStats = useMemo(() => {
         const tiffins = getAllTiffins()
@@ -20,9 +30,27 @@ const UsersPage = () => {
                 return acc
             }, {})
             const favouriteType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
-            return { ...u, approved: approved.length, pending: pending.length, total, favouriteType }
+
+            // payment info
+            const payment = getPayment(u.id, u.centerId, CURRENT_MONTH, CURRENT_YEAR)
+            const totalDue = calculateTotalDue(u.id, u.centerId, CURRENT_MONTH, CURRENT_YEAR)
+            const amountPaid = payment?.amountPaid || 0
+            const balanceDue = Math.max(0, totalDue - amountPaid)
+            const payStatus = !payment || amountPaid === 0 ? 'unpaid' : balanceDue <= 0 ? 'paid' : 'partial'
+
+            return {
+                ...u,
+                approved: approved.length,
+                pending: pending.length,
+                total,
+                favouriteType,
+                totalDue,
+                amountPaid,
+                balanceDue,
+                payStatus,
+            }
         })
-    }, [])
+    }, [paymentModal]) // re-compute when modal closes after payment
 
     const statCells = (u) => [
         { label: 'Amount due', value: `₹${u.total}`, color: '#0F6E56' },
@@ -53,7 +81,7 @@ const UsersPage = () => {
                             <StatusBadge status='active' />
                         </div>
 
-                        {/* Stats grid */}
+                        {/* Tiffin stats */}
                         <div className={styles.statsGrid}>
                             {statCells(u).map((stat, i) => (
                                 <div
@@ -72,9 +100,47 @@ const UsersPage = () => {
                             ))}
                         </div>
 
+                        {/* Payment section */}
+                        <div className={styles.paymentSection}>
+                            <div className={styles.paymentRow}>
+                                <div>
+                                    <div className={styles.paymentLabel}>June 2025 payment</div>
+                                    <div className={styles.paymentAmounts}>
+                                        <span className={styles.paidAmt}>₹{u.amountPaid} paid</span>
+                                        {u.balanceDue > 0 && (
+                                            <span className={styles.balanceAmt}>· ₹{u.balanceDue} due</span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className={styles.paymentRight}>
+                                    <StatusBadge status={u.payStatus} />
+                                    {isRole(ROLES.CENTER) && (
+                                        <AppButton
+                                            label='Record'
+                                            icon={<FaRupeeSign size={11} />}
+                                            variant={u.payStatus === 'paid' ? 'secondary' : 'primary'}
+                                            size='sm'
+                                            onClick={() => setPaymentModal(u)}
+                                            style={{ marginTop: '6px' }}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 ))}
             </div>
+
+            {/* Payment modal */}
+            {paymentModal && (
+                <PaymentModal
+                    customer={paymentModal}
+                    centerId={paymentModal.centerId || 1}
+                    onClose={() => setPaymentModal(null)}
+                    onSuccess={() => setPaymentModal(null)}
+                />
+            )}
 
         </div>
     )

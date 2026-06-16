@@ -1,20 +1,33 @@
 import styles from './StatusBadge.module.css'
 import clsx from 'clsx'
 
-const StatusBadge = ({ status, label, style = {} }) => {
-    const LABELS = {
-        approved: 'Approved', pending: 'Pending', rejected: 'Rejected',
-        active: 'Active', morning: '🌅 Morning', night: '🌙 Night',
-        full: 'Full', half: 'Half', chapati: 'Only Chapati',
-        bhakari: 'Bhakari', dalrice: 'Dal Rice', none: 'No Tiffin',
-    }
+const BADGE_CONFIG = {
+    approved: { label: 'Approved' },
+    pending: { label: 'Pending' },
+    rejected: { label: 'Rejected' },
+    active: { label: 'Active' },
+    morning: { label: '🌅 Morning' },
+    night: { label: '🌙 Night' },
+    full: { label: 'Full' },
+    half: { label: 'Half' },
+    chapati: { label: 'Only Chapati' },
+    bhakari: { label: 'Bhakari' },
+    dalrice: { label: 'Dal Rice' },
+    none: { label: 'No Tiffin' },
+    // payment statuses
+    paid: { label: 'Paid' },
+    partial: { label: 'Partial' },
+    unpaid: { label: 'Unpaid' },
+}
 
+const StatusBadge = ({ status, label, style = {} }) => {
+    const cfg = BADGE_CONFIG[status] || { label: status }
     return (
         <span
             className={clsx(styles.badge, styles[status])}
             style={style}
         >
-            {label || LABELS[status] || status}
+            {label || cfg.label}
         </span>
     )
 }

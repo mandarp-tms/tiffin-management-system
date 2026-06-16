@@ -14,7 +14,7 @@ export const TIFFIN_TYPES = [
 
 export const CHAPATI_OPTIONS = {
     full: [{ label: '3 chapati (default)', value: 3 }, { label: '2 chapati', value: 2 }, { label: '1 chapati', value: 1 }],
-    half: [{ label: '2 chapati (default)', value: 2 }, { label: '1 chapati', value: 1 }],
+    half: [{ label: '3 chapati (default)', value: 3 }, { label: '2 chapati', value: 2 }, { label: '1 chapati', value: 1 }],
     chapati: [{ label: '2 (default)', value: 2 }, { label: '1', value: 1 }],
     bhakari: [{ label: '2 (default)', value: 2 }, { label: '1', value: 1 }],
     dalrice: [],
