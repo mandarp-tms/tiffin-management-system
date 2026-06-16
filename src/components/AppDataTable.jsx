@@ -60,7 +60,7 @@ const AppDataTable = ({
                                         )}
                                         style={{ whiteSpace: col.noWrap ? 'nowrap' : 'normal' }}
                                     >
-                                        {col.body ? col.body(row) : row[col.field]}
+                                        {col.body ? col.body(row, rIdx) : row[col.field]}
                                     </td>
                                 ))}
                             </tr>

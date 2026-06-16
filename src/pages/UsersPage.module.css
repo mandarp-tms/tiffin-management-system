@@ -90,3 +90,48 @@
     font-size: 18px;
     font-weight: 700;
 }
+
+/* Payment section inside customer card */
+.paymentSection {
+    border-top: 1px solid var(--surface-border);
+    padding: 0.875rem 1rem;
+    background: var(--surface-ground);
+}
+
+.paymentRow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.paymentLabel {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+    margin-bottom: 4px;
+}
+
+.paymentAmounts {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.paidAmt {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0F6E56;
+}
+
+.balanceAmt {
+    font-size: 13px;
+    color: #A32D2D;
+    font-weight: 500;
+}
+
+.paymentRight {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
