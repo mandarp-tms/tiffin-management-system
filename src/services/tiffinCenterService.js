@@ -1,29 +1,36 @@
-import { tiffinCenters } from '../mock/tiffinCenters'
-import { users } from '../mock/users'
-import { getAllTiffins } from './tiffinService'
-import { getPricing } from './pricingService'
+import apiClient from '../utils/apiClient'
 
-export const getAllCenters = () => [...tiffinCenters]
+export const getAllCenters = async () => {
+    const res = await apiClient.get('/tiffin-centers')
+    return res.data
+}
 
-export const getCenterById = (id) =>
-    tiffinCenters.find(c => c.id === id)
+export const getCenterById = async (id) => {
+    if (!id) return null
+    const res = await apiClient.get(`/tiffin-centers/${id}`)
+    return res.data
+}
 
-export const getCustomersByCenter = (centerId) =>
-    users.filter(u => u.role === 'user' && u.centerId === centerId)
+export const getCenterCustomers = async (centerId) => {
+    const res = await apiClient.get(`/tiffin-centers/${centerId}/customers`)
+    return res.data
+}
 
-export const getCenterStats = (centerId) => {
-    const customers = getCustomersByCenter(centerId)
-    const tiffins = getAllTiffins().filter(t =>
-        customers.some(c => c.id === t.userId) &&
-        t.status === 'approved' &&
-        t.type !== 'none'
-    )
-    const totalAmount = tiffins.reduce((s, t) => s + t.amount, 0)
-    const pricing = getPricing(centerId)
-    return {
-        customerCount: customers.length,
-        tiffinCount: tiffins.length,
-        totalAmount,
-        pricing,
-    }
+export const createCenter = async (payload) => {
+    const res = await apiClient.post('/tiffin-centers', payload)
+    return res.data
+}
+
+export const updateCenter = async (id, payload) => {
+    const res = await apiClient.patch(`/tiffin-centers/${id}`, payload)
+    return res.data
+}
+
+export const getCenterStats = async (centerId) => {
+    // backend returns aggregate stats as part of listCenters; for single center reuse customers + center detail
+    const [center, customers] = await Promise.all([
+        getCenterById(centerId),
+        getCenterCustomers(centerId),
+    ])
+    return { center, customers }
 }

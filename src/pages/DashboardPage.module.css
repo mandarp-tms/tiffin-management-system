@@ -120,3 +120,32 @@
     font-weight: 500;
     color: #0F6E56;
 }
+
+/* Loading skeleton for stat cards */
+.skeletonCard {
+    background: var(--surface-border);
+    border-radius: 12px;
+    height: 100px;
+    animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}
+
+/* Loading and empty states for table */
+.loadingRow,
+.emptyRow {
+    padding: 2rem;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-color-secondary);
+}

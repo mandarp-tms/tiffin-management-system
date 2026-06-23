@@ -1,28 +1,33 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Toast } from 'primereact/toast'
 import clsx from 'clsx'
 import AppDataTable from '../components/AppDataTable'
 import AppDropdown from '../components/AppDropdown'
 import StatusBadge from '../components/StatusBadge'
 import AppButton from '../components/AppButton'
-import { getAllTiffins } from '../services/tiffinService'
 import { getTiffinUsers } from '../services/userService'
-import {
-    calculateTotalDue,
-    getPayment,
-    recordPayment,
-} from '../services/paymentService'
+import { getPayment, recordPayment } from '../services/paymentService'
+import { getBillingReport } from '../services/reportService'
 import { TYPE_LABELS, ROLES } from '../utils/constants'
 import { formatDate } from '../utils/formatDate'
 import { useAuth } from '../context/AuthContext'
 import { FaRupeeSign, FaTimes } from 'react-icons/fa'
 import styles from './ReportsPage.module.css'
 
-const MONTHS = [
-    { label: 'June 2025', value: '2025-06', month: 6, year: 2025 },
-    { label: 'May 2025', value: '2025-05', month: 5, year: 2025 },
-    { label: 'April 2025', value: '2025-04', month: 4, year: 2025 },
-]
+// Build last 6 months dynamically
+const buildMonthOptions = () => {
+    const options = []
+    const now = new Date()
+    for (let i = 0; i < 6; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        const value = d.toISOString().slice(0, 7)
+        const label = d.toLocaleString('en-IN', { month: 'long', year: 'numeric' })
+        options.push({ label, value, month: d.getMonth() + 1, year: d.getFullYear() })
+    }
+    return options
+}
+
+const MONTHS = buildMonthOptions()
 
 const STATUS_OPTIONS = [
     { label: 'All entries', value: 'all' },
@@ -48,98 +53,121 @@ const PAYMENT_METHODS = [
 const ReportsPage = () => {
     const toast = useRef(null)
     const { currentUser, isRole } = useAuth()
-    const allCustomers = getTiffinUsers()
 
-    const customerOptions = [
-        { label: 'All customers', value: 'all' },
-        ...allCustomers.map(u => ({ label: u.name, value: u.id })),
-    ]
+    const centerId = currentUser?.centerId || 1
 
-    const [month, setMonth] = useState('2025-06')
+    // ── Filter state ───────────────────────────────────────
+    const [month, setMonth] = useState(MONTHS[0].value)
     const [customerFilter, setCustomerFilter] = useState('all')
     const [statusFilter, setStatusFilter] = useState('all')
     const [showTxModal, setShowTxModal] = useState(false)
+
+    // ── Remote data ────────────────────────────────────────
+    const [customers, setCustomers] = useState([])
+    const [reportData, setReportData] = useState(null)
+    const [paymentInfo, setPaymentInfo] = useState(null)
+    const [reportLoading, setReportLoading] = useState(true)
+    const [paymentLoading, setPaymentLoading] = useState(false)
+    const [submitting, setSubmitting] = useState(false)
 
     // Payment form state
     const [payAmount, setPayAmount] = useState('')
     const [payMethod, setPayMethod] = useState('cash')
     const [payReference, setPayReference] = useState('')
     const [payNote, setPayNote] = useState('')
-    const [payRefresh, setPayRefresh] = useState(0)
 
-    const selectedMonth = MONTHS.find(m => m.value === month)
-    const currentMonth = selectedMonth?.month || 6
-    const currentYear = selectedMonth?.year || 2025
+    const selectedMonth = MONTHS.find(m => m.value === month) || MONTHS[0]
+    const currentMonth = selectedMonth.month
+    const currentYear = selectedMonth.year
 
-    // ── Tiffin data ────────────────────────────────────────
-    const allFiltered = useMemo(() =>
-        getAllTiffins().filter(t => {
-            const matchMonth = t.date.startsWith(month)
-            const matchCustomer = customerFilter === 'all' || t.userId === customerFilter
-            return matchMonth && matchCustomer
-        }),
-        [month, customerFilter])
+    // ── Load customers once ────────────────────────────────
+    useEffect(() => {
+        getTiffinUsers(centerId)
+            .then(data => setCustomers(Array.isArray(data) ? data : []))
+            .catch(err => console.error('Load customers error:', err))
+    }, [centerId])
 
-    const tableData = useMemo(() =>
-        statusFilter === 'all'
-            ? allFiltered
-            : allFiltered.filter(t => t.status === statusFilter),
-        [allFiltered, statusFilter])
+    // ── Load billing report on filter change ──────────────
+    const fetchReport = useCallback(async () => {
+        setReportLoading(true)
+        try {
+            const data = await getBillingReport({
+                centerId,
+                month,
+                userId: customerFilter !== 'all' ? customerFilter : undefined,
+                status: statusFilter !== 'all' ? statusFilter : undefined,
+            })
+            setReportData(data)
+        } catch (err) {
+            console.error('Billing report error:', err)
+            toast.current?.show({ severity: 'error', summary: 'Failed to load report', life: 3000 })
+        } finally {
+            setReportLoading(false)
+        }
+    }, [centerId, month, customerFilter, statusFilter])
 
-    const customerTotals = useMemo(() =>
-        allCustomers.map(u => {
-            const entries = allFiltered.filter(t =>
-                t.userId === u.id && t.status === 'approved' && t.type !== 'none'
-            )
-            const total = entries.reduce((s, t) => s + t.amount, 0)
-            return { ...u, count: entries.length, total }
-        }),
-        [allFiltered])
+    useEffect(() => { fetchReport() }, [fetchReport])
 
-    const grandTotal = customerTotals.reduce((s, u) => s + u.total, 0)
+    // ── Load payment info when customer selected ──────────
+    const fetchPaymentInfo = useCallback(async () => {
+        if (customerFilter === 'all') {
+            setPaymentInfo(null)
+            return
+        }
+        const customer = customers.find(u => u.id === customerFilter)
+        if (!customer) return
 
-    const counts = useMemo(() => ({
-        all: allFiltered.length,
-        approved: allFiltered.filter(t => t.status === 'approved').length,
-        pending: allFiltered.filter(t => t.status === 'pending').length,
-        rejected: allFiltered.filter(t => t.status === 'rejected').length,
-    }), [allFiltered])
+        setPaymentLoading(true)
+        try {
+            const cid = customer.centerId || centerId
+            const existing = await getPayment(customer.id, cid, currentMonth, currentYear)
+            const totalDue = reportData?.customerTotals?.find(c => c.userId === customer.id)?.total || 0
+            const amountPaid = parseFloat(existing?.amountPaid || 0)
+            const balanceDue = Math.max(0, totalDue - amountPaid)
+            const status = amountPaid === 0 ? 'unpaid' : balanceDue <= 0 ? 'paid' : 'partial'
 
-    // ── Payment data — driven by top customer dropdown ────
-    // Only shows when a specific customer is selected
-    const selectedCustomer = useMemo(() =>
-        customerFilter !== 'all'
-            ? allCustomers.find(u => u.id === customerFilter) || null
-            : null,
-        [customerFilter])
+            setPaymentInfo({ totalDue, amountPaid, balanceDue, status, existing, centerId: cid })
+        } catch (err) {
+            console.error('Load payment error:', err)
+        } finally {
+            setPaymentLoading(false)
+        }
+    }, [customerFilter, customers, currentMonth, currentYear, reportData])
 
-    const paymentInfo = useMemo(() => {
-        if (!selectedCustomer) return null
-        const centerId = selectedCustomer.centerId || 1
-        const totalDue = calculateTotalDue(selectedCustomer.id, centerId, currentMonth, currentYear)
-        const existing = getPayment(selectedCustomer.id, centerId, currentMonth, currentYear)
-        const amountPaid = existing?.amountPaid || 0
-        const balanceDue = Math.max(0, totalDue - amountPaid)
-        const status = amountPaid === 0 ? 'unpaid' : balanceDue <= 0 ? 'paid' : 'partial'
-        return { totalDue, amountPaid, balanceDue, status, existing, centerId }
-    }, [selectedCustomer, currentMonth, currentYear, payRefresh])
+    useEffect(() => { fetchPaymentInfo() }, [fetchPaymentInfo])
 
-    // Reset payment form when customer changes
+    // ── Customer change ────────────────────────────────────
     const handleCustomerChange = (val) => {
         setCustomerFilter(val)
         setPayAmount('')
         setPayReference('')
         setPayNote('')
+        setPaymentInfo(null)
     }
 
+    // ── Derived from reportData ────────────────────────────
+    const tableData = reportData?.entries || []
+    const customerTotals = reportData?.customerTotals || []
+    const grandTotal = reportData?.grandTotal || 0
+    const statusCounts = reportData?.statusCounts || { all: 0, approved: 0, pending: 0, rejected: 0 }
+
+    const selectedCustomer = customerFilter !== 'all'
+        ? customers.find(u => u.id === customerFilter) || null
+        : null
+
+    const customerOptions = [
+        { label: 'All customers', value: 'all' },
+        ...customers.map(u => ({ label: u.name, value: u.id })),
+    ]
+
     // ── Record payment ─────────────────────────────────────
-    const handleRecordPayment = () => {
+    const handleRecordPayment = async () => {
         const amt = parseFloat(payAmount)
         if (!amt || amt <= 0) {
             toast.current.show({ severity: 'warn', summary: 'Enter a valid amount', life: 2000 })
             return
         }
-        if (amt > paymentInfo.balanceDue) {
+        if (paymentInfo && amt > paymentInfo.balanceDue) {
             toast.current.show({
                 severity: 'warn',
                 summary: `Amount exceeds balance due ₹${paymentInfo.balanceDue}`,
@@ -147,36 +175,48 @@ const ReportsPage = () => {
             })
             return
         }
-        recordPayment({
-            userId: selectedCustomer.id,
-            userName: selectedCustomer.name,
-            centerId: paymentInfo.centerId,
-            month: currentMonth,
-            year: currentYear,
-            amount: amt,
-            method: payMethod,
-            reference: payReference,
-            note: payNote,
-            recordedBy: currentUser?.name,
-        })
-        toast.current.show({
-            severity: 'success',
-            summary: 'Payment recorded',
-            detail: `₹${amt} recorded for ${selectedCustomer.name}`,
-            life: 2500,
-        })
-        setPayAmount('')
-        setPayReference('')
-        setPayNote('')
-        setPayRefresh(r => r + 1)
+        setSubmitting(true)
+        try {
+            await recordPayment({
+                userId: selectedCustomer.id,
+                centerId: paymentInfo.centerId,
+                month: currentMonth,
+                year: currentYear,
+                amount: amt,
+                method: payMethod,
+                reference: payReference,
+                note: payNote,
+            })
+            toast.current.show({
+                severity: 'success',
+                summary: 'Payment recorded',
+                detail: `₹${amt} recorded for ${selectedCustomer.name}`,
+                life: 2500,
+            })
+            setPayAmount('')
+            setPayReference('')
+            setPayNote('')
+            // Refresh both report and payment info
+            fetchReport()
+            fetchPaymentInfo()
+        } catch (err) {
+            toast.current.show({
+                severity: 'error',
+                summary: 'Payment failed',
+                detail: err?.message || 'Could not record payment',
+                life: 3000,
+            })
+        } finally {
+            setSubmitting(false)
+        }
     }
 
     // ── Table columns ──────────────────────────────────────
     const columns = [
-        { header: 'Date', body: row => formatDate(row.date), noWrap: true },
-        { header: 'Customer', field: 'userName', noWrap: true },
+        { header: 'Date', body: row => formatDate(row.date || row.entryDate), noWrap: true },
+        { header: 'Customer', body: row => row.user?.name || row.userName || '—', noWrap: true },
         { header: 'Shift', body: row => <StatusBadge status={row.shift || 'morning'} /> },
-        { header: 'Type', body: row => <StatusBadge status={row.type} label={TYPE_LABELS[row.type]} /> },
+        { header: 'Type', body: row => <StatusBadge status={row.tiffinType || row.type} label={TYPE_LABELS[row.tiffinType || row.type]} /> },
         { header: 'Chapati', body: row => row.chapatiCount || '—', align: 'center' },
         {
             header: 'Amount',
@@ -193,7 +233,7 @@ const ReportsPage = () => {
         <div className={styles.page}>
             <Toast ref={toast} />
 
-            {/* ── Filters — ONE customer dropdown ───────────── */}
+            {/* ── Filters ────────────────────────────────────── */}
             <div className={styles.filters}>
                 <div className={styles.filterItem}>
                     <AppDropdown
@@ -232,7 +272,7 @@ const ReportsPage = () => {
                                     color: isActive ? '#fff' : cc.color,
                                 }}
                             >
-                                {counts[opt.value]}
+                                {reportLoading ? '...' : statusCounts[opt.value] ?? 0}
                             </span>
                         </button>
                     )
@@ -241,18 +281,23 @@ const ReportsPage = () => {
 
             {/* ── Billing totals ──────────────────────────────── */}
             <div className={styles.totalsGrid}>
-                {customerTotals.map(u => (
-                    <div key={u.name} className={styles.totalCard}>
-                        <div className={styles.totalLabel}>{u.name}</div>
-                        <div className={styles.totalValue}>₹{u.total}</div>
-                        <div className={styles.totalSub}>{u.count} tiffins</div>
-                    </div>
-                ))}
-                <div className={clsx(styles.totalCard, styles.grand)}>
-                    <div className={clsx(styles.totalLabel, styles.grand)}>Grand total</div>
-                    <div className={clsx(styles.totalValue, styles.grand)}>₹{grandTotal}</div>
-                    <div className={clsx(styles.totalSub, styles.grand)}>approved only</div>
-                </div>
+                {reportLoading
+                    ? [1, 2, 3].map(i => <div key={i} style={{ height: '90px', borderRadius: '12px', background: 'var(--surface-border)', animation: 'pulse 1.2s infinite' }} />)
+                    : <>
+                        {customerTotals.map(u => (
+                            <div key={u.userId || u.name} className={styles.totalCard}>
+                                <div className={styles.totalLabel}>{u.name}</div>
+                                <div className={styles.totalValue}>₹{u.total}</div>
+                                <div className={styles.totalSub}>{u.count} tiffins</div>
+                            </div>
+                        ))}
+                        <div className={clsx(styles.totalCard, styles.grand)}>
+                            <div className={clsx(styles.totalLabel, styles.grand)}>Grand total</div>
+                            <div className={clsx(styles.totalValue, styles.grand)}>₹{grandTotal}</div>
+                            <div className={clsx(styles.totalSub, styles.grand)}>approved only</div>
+                        </div>
+                    </>
+                }
             </div>
 
             {/* ── Info banner ─────────────────────────────────── */}
@@ -265,7 +310,6 @@ const ReportsPage = () => {
             )}
 
             {/* ── Payment section ──────────────────────────────── */}
-            {/* Only shown to center/admin AND only when a specific customer is selected */}
             {(isRole(ROLES.CENTER) || isRole(ROLES.ADMIN)) && (
                 <div className={styles.paymentSection}>
                     <div className={styles.paymentSectionHead}>
@@ -273,11 +317,11 @@ const ReportsPage = () => {
                         <div className={styles.paymentSectionSub}>
                             {selectedCustomer
                                 ? `Showing payment details for ${selectedCustomer.name} — ${selectedMonth?.label}`
-                                : `Select a specific customer above to view and record payments`}
+                                : 'Select a specific customer above to view and record payments'}
                         </div>
                     </div>
 
-                    {/* No customer selected hint */}
+                    {/* No customer selected */}
                     {!selectedCustomer && (
                         <div className={styles.paymentEmpty}>
                             <i className='pi pi-arrow-up' style={{ marginRight: '6px' }} />
@@ -285,26 +329,177 @@ const ReportsPage = () => {
                         </div>
                     )}
 
-                    {/* Transaction history — button to open modal */}
-                    {selectedCustomer && paymentInfo.existing?.transactions?.length > 0 && (
-                        <div className={styles.txHistoryRow}>
-                            <div className={styles.txHistorySummary}>
-                                <span className={styles.txCount}>
-                                    {paymentInfo.existing.transactions.length} transaction{paymentInfo.existing.transactions.length !== 1 ? 's' : ''} recorded
-                                </span>
-                                <span className={styles.txLastDate}>
-                                    · Last payment: {new Date(paymentInfo.existing.paidAt).toLocaleDateString('en-IN', {
-                                        day: '2-digit', month: 'short', year: 'numeric',
-                                    })}
-                                </span>
-                            </div>
-                            <AppButton
-                                label='View history'
-                                icon={<i className='pi pi-history' />}
-                                variant='secondary'
-                                size='sm'
-                                onClick={() => setShowTxModal(true)}
-                            />
+                    {/* Payment details */}
+                    {selectedCustomer && (
+                        <div className={styles.paymentDetails}>
+                            {paymentLoading ? (
+                                <div style={{ padding: '1rem', textAlign: 'center', fontSize: '13px', color: 'var(--text-color-secondary)' }}>
+                                    Loading payment details...
+                                </div>
+                            ) : paymentInfo && (
+                                <>
+                                    {/* Balance overview */}
+                                    <div className={styles.balanceGrid}>
+                                        <div className={styles.balanceCard}>
+                                            <div className={styles.balanceLabel}>Total due</div>
+                                            <div className={styles.balanceValue}>₹{paymentInfo.totalDue}</div>
+                                            <div className={styles.balanceSub}>From approved tiffins</div>
+                                        </div>
+                                        <div className={styles.balanceCard}>
+                                            <div className={styles.balanceLabel}>Amount paid</div>
+                                            <div className={clsx(styles.balanceValue, styles.green)}>₹{paymentInfo.amountPaid}</div>
+                                            <div className={styles.balanceSub}>
+                                                {paymentInfo.existing?.transactions?.length || 0} transaction{paymentInfo.existing?.transactions?.length !== 1 ? 's' : ''}
+                                            </div>
+                                        </div>
+                                        <div className={styles.balanceCard}>
+                                            <div className={styles.balanceLabel}>Remaining to pay</div>
+                                            <div className={clsx(styles.balanceValue, paymentInfo.balanceDue > 0 ? styles.red : styles.green)}>
+                                                ₹{paymentInfo.balanceDue}
+                                            </div>
+                                            <div className={styles.balanceSub}>
+                                                {paymentInfo.balanceDue === 0 ? 'Fully settled' : 'Outstanding'}
+                                            </div>
+                                        </div>
+                                        <div className={styles.balanceCard}>
+                                            <div className={styles.balanceLabel}>Status</div>
+                                            <div style={{ marginTop: '6px' }}>
+                                                <StatusBadge status={paymentInfo.status} />
+                                            </div>
+                                            <div className={styles.balanceSub} style={{ marginTop: '4px' }}>
+                                                {paymentInfo.status === 'paid'
+                                                    ? 'Fully paid'
+                                                    : paymentInfo.status === 'partial'
+                                                        ? `${Math.round((paymentInfo.amountPaid / paymentInfo.totalDue) * 100)}% paid`
+                                                        : 'No payment yet'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Progress bar */}
+                                    {paymentInfo.totalDue > 0 && (
+                                        <div className={styles.progressWrap}>
+                                            <div className={styles.progressBar}>
+                                                <div
+                                                    className={styles.progressFill}
+                                                    style={{
+                                                        width: `${Math.min(100, Math.round((paymentInfo.amountPaid / paymentInfo.totalDue) * 100))}%`,
+                                                        background: paymentInfo.balanceDue === 0 ? '#1D9E75' : '#BA7517',
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className={styles.progressLabel}>
+                                                {Math.min(100, Math.round((paymentInfo.amountPaid / paymentInfo.totalDue) * 100))}% paid
+                                                {paymentInfo.balanceDue > 0 && ` · ₹${paymentInfo.balanceDue} remaining`}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* View history button */}
+                                    {paymentInfo.existing?.transactions?.length > 0 && (
+                                        <div className={styles.txHistoryRow}>
+                                            <div className={styles.txHistorySummary}>
+                                                <span className={styles.txCount}>
+                                                    {paymentInfo.existing.transactions.length} transaction{paymentInfo.existing.transactions.length !== 1 ? 's' : ''} recorded
+                                                </span>
+                                                <span className={styles.txLastDate}>
+                                                    · Last payment: {new Date(paymentInfo.existing.paidAt).toLocaleDateString('en-IN', {
+                                                        day: '2-digit', month: 'short', year: 'numeric',
+                                                    })}
+                                                </span>
+                                            </div>
+                                            <AppButton
+                                                label='View history'
+                                                icon={<i className='pi pi-history' />}
+                                                variant='secondary'
+                                                size='sm'
+                                                onClick={() => setShowTxModal(true)}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Record form */}
+                                    {isRole(ROLES.CENTER) && paymentInfo.balanceDue > 0 && (
+                                        <div className={styles.recordForm}>
+                                            <div className={styles.recordFormTitle}>
+                                                Record new payment for {selectedCustomer.name}
+                                            </div>
+                                            <div className={styles.recordFormGrid}>
+                                                <div className={styles.recordFormGroup}>
+                                                    <label className={styles.recordLabel}>Amount (max ₹{paymentInfo.balanceDue})</label>
+                                                    <div className={styles.amountInput}>
+                                                        <span className={styles.rupee}>₹</span>
+                                                        <input
+                                                            type='number'
+                                                            className={styles.amountField}
+                                                            placeholder={`1 – ${paymentInfo.balanceDue}`}
+                                                            value={payAmount}
+                                                            min={1}
+                                                            max={paymentInfo.balanceDue}
+                                                            onChange={e => setPayAmount(e.target.value)}
+                                                        />
+                                                        <button
+                                                            className={styles.fullBtn}
+                                                            onClick={() => setPayAmount(String(paymentInfo.balanceDue))}
+                                                        >
+                                                            Full ₹{paymentInfo.balanceDue}
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className={styles.recordFormGroup}>
+                                                    <AppDropdown
+                                                        label='Payment method'
+                                                        value={payMethod}
+                                                        options={PAYMENT_METHODS}
+                                                        onChange={e => setPayMethod(e.value)}
+                                                    />
+                                                </div>
+
+                                                {(payMethod === 'upi' || payMethod === 'bank') && (
+                                                    <div className={styles.recordFormGroup}>
+                                                        <label className={styles.recordLabel}>Reference / Transaction ID</label>
+                                                        <input
+                                                            type='text'
+                                                            className={styles.textInput}
+                                                            placeholder='e.g. UPI123456789'
+                                                            value={payReference}
+                                                            onChange={e => setPayReference(e.target.value)}
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                <div className={styles.recordFormGroup}>
+                                                    <label className={styles.recordLabel}>Note (optional)</label>
+                                                    <input
+                                                        type='text'
+                                                        className={styles.textInput}
+                                                        placeholder='e.g. Second installment'
+                                                        value={payNote}
+                                                        onChange={e => setPayNote(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className={styles.recordFormActions}>
+                                                <AppButton
+                                                    label={submitting ? 'Recording...' : `Record ₹${payAmount || '0'} payment`}
+                                                    icon={<FaRupeeSign size={12} />}
+                                                    variant='primary'
+                                                    disabled={submitting}
+                                                    onClick={handleRecordPayment}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Fully paid */}
+                                    {paymentInfo.balanceDue <= 0 && (
+                                        <div className={styles.paidBanner}>
+                                            ✅ {selectedCustomer.name} has fully paid for {selectedMonth?.label}
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
@@ -315,23 +510,22 @@ const ReportsPage = () => {
                 <div className={styles.tableHead}>
                     <span>Detailed log</span>
                     <span className={styles.tableCount}>
-                        {tableData.length} entr{tableData.length === 1 ? 'y' : 'ies'}
+                        {reportLoading ? '...' : `${tableData.length} entr${tableData.length === 1 ? 'y' : 'ies'}`}
                     </span>
                 </div>
                 <AppDataTable
                     columns={columns}
                     data={tableData}
+                    loading={reportLoading}
                     emptyMessage='No entries found for selected filters.'
                     pageSize={10}
                 />
             </div>
 
-            {/* Transaction history modal */}
+            {/* ── Transaction history modal ────────────────────── */}
             {showTxModal && paymentInfo?.existing?.transactions && (
                 <div className={styles.txModalOverlay} onClick={() => setShowTxModal(false)}>
                     <div className={styles.txModal} onClick={e => e.stopPropagation()}>
-
-                        {/* Header */}
                         <div className={styles.txModalHeader}>
                             <div>
                                 <div className={styles.txModalTitle}>
@@ -341,15 +535,11 @@ const ReportsPage = () => {
                                     {selectedMonth?.label} · {paymentInfo.existing.transactions.length} transaction{paymentInfo.existing.transactions.length !== 1 ? 's' : ''}
                                 </div>
                             </div>
-                            <div
-                                className={styles.txModalClose}
-                                onClick={() => setShowTxModal(false)}
-                            >
+                            <div className={styles.txModalClose} onClick={() => setShowTxModal(false)}>
                                 <FaTimes size={15} color='var(--text-color-secondary)' />
                             </div>
                         </div>
 
-                        {/* Summary row */}
                         <div className={styles.txModalSummary}>
                             <div className={styles.txModalSummaryCard}>
                                 <div className={styles.txModalSummaryLabel}>Total due</div>
@@ -357,16 +547,11 @@ const ReportsPage = () => {
                             </div>
                             <div className={styles.txModalSummaryCard}>
                                 <div className={styles.txModalSummaryLabel}>Total paid</div>
-                                <div className={clsx(styles.txModalSummaryValue, styles.green)}>
-                                    ₹{paymentInfo.amountPaid}
-                                </div>
+                                <div className={clsx(styles.txModalSummaryValue, styles.green)}>₹{paymentInfo.amountPaid}</div>
                             </div>
                             <div className={styles.txModalSummaryCard}>
                                 <div className={styles.txModalSummaryLabel}>Remaining</div>
-                                <div className={clsx(
-                                    styles.txModalSummaryValue,
-                                    paymentInfo.balanceDue > 0 ? styles.red : styles.green
-                                )}>
+                                <div className={clsx(styles.txModalSummaryValue, paymentInfo.balanceDue > 0 ? styles.red : styles.green)}>
                                     ₹{paymentInfo.balanceDue}
                                 </div>
                             </div>
@@ -378,68 +563,16 @@ const ReportsPage = () => {
                             </div>
                         </div>
 
-                        {/* AppDataTable */}
                         <div className={styles.txModalTable}>
                             <AppDataTable
                                 columns={[
-                                    {
-                                        header: '#',
-                                        body: (row, idx) => <span className={styles.txSerial}>{idx + 1}</span>,
-                                        width: '40px',
-                                        align: 'center',
-                                    },
-                                    {
-                                        header: 'Amount',
-                                        body: row => (
-                                            <span className={styles.txTableAmount}>₹{row.amount}</span>
-                                        ),
-                                    },
-                                    {
-                                        header: 'Method',
-                                        body: row => (
-                                            <span className={styles.txTableMethod}>
-                                                {row.method === 'cash' && '💵 '}
-                                                {row.method === 'upi' && '📱 '}
-                                                {row.method === 'bank' && '🏦 '}
-                                                {row.method === 'card' && '💳 '}
-                                                {row.method.charAt(0).toUpperCase() + row.method.slice(1)}
-                                            </span>
-                                        ),
-                                    },
-                                    {
-                                        header: 'Reference',
-                                        body: row => (
-                                            <span className={styles.txTableRef}>
-                                                {row.reference || '—'}
-                                            </span>
-                                        ),
-                                    },
-                                    {
-                                        header: 'Note',
-                                        body: row => (
-                                            <span className={styles.txTableNote}>
-                                                {row.note || '—'}
-                                            </span>
-                                        ),
-                                    },
-                                    {
-                                        header: 'Date',
-                                        body: row => (
-                                            <span style={{ whiteSpace: 'nowrap' }}>
-                                                {new Date(row.paidAt).toLocaleDateString('en-IN', {
-                                                    day: '2-digit', month: 'short', year: 'numeric',
-                                                })}
-                                            </span>
-                                        ),
-                                        noWrap: true,
-                                    },
-                                    {
-                                        header: 'Recorded by',
-                                        body: row => (
-                                            <span className={styles.txTableBy}>{row.recordedBy}</span>
-                                        ),
-                                        noWrap: true,
-                                    },
+                                    { header: '#', body: (row, idx) => <span className={styles.txSerial}>{idx + 1}</span>, width: '40px', align: 'center' },
+                                    { header: 'Amount', body: row => <span className={styles.txTableAmount}>₹{row.amount}</span> },
+                                    { header: 'Method', body: row => <span className={styles.txTableMethod}>{row.method?.charAt(0).toUpperCase() + row.method?.slice(1)}</span> },
+                                    { header: 'Reference', body: row => <span className={styles.txTableRef}>{row.reference || '—'}</span> },
+                                    { header: 'Note', body: row => <span className={styles.txTableNote}>{row.note || '—'}</span> },
+                                    { header: 'Date', body: row => <span style={{ whiteSpace: 'nowrap' }}>{new Date(row.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>, noWrap: true },
+                                    { header: 'Recorded by', body: row => <span className={styles.txTableBy}>{row.recordedByName || row.recordedBy || '—'}</span>, noWrap: true },
                                 ]}
                                 data={paymentInfo.existing.transactions}
                                 emptyMessage='No transactions found.'
@@ -447,18 +580,13 @@ const ReportsPage = () => {
                             />
                         </div>
 
-                        {/* Footer */}
                         <div className={styles.txModalFooter}>
-                            <AppButton
-                                label='Close'
-                                variant='secondary'
-                                onClick={() => setShowTxModal(false)}
-                            />
+                            <AppButton label='Close' variant='secondary' onClick={() => setShowTxModal(false)} />
                         </div>
-
                     </div>
                 </div>
             )}
+
         </div>
     )
 }

@@ -1,50 +1,36 @@
-import { tiffins as mockTiffins } from '../mock/tiffins'
+import apiClient from '../utils/apiClient'
 
-// local copy so we can mutate (add, approve, reject) during the session
-let data = [...mockTiffins]
-
-export const getAllTiffins = () => [...data]
-
-export const getMyTiffins = (userId) =>
-    data.filter(t => t.userId === userId)
-
-export const getPendingTiffins = () =>
-    data.filter(t => t.status === 'pending')
-
-export const addTiffin = (entry) => {
-    const newEntry = {
-        ...entry,
-        id: data.length + 1,
-        status: entry.addedBy === 'center' ? 'approved' : 'pending',
-    }
-    data.push(newEntry)
-    return newEntry
+export const getAllTiffins = async (filters = {}) => {
+    const res = await apiClient.get('/tiffin-entries', { params: filters })
+    return res.data   // ← array of entries
 }
 
-export const markNoTiffin = (userId, userName, date) => {
-    const entry = {
-        id: data.length + 1,
-        userId,
-        userName,
-        date,
-        type: 'none',
-        chapatiCount: 0,
-        amount: 0,
-        status: 'approved',
-        note: 'No tiffin',
-    }
-    data.push(entry)
-    return entry
+export const addTiffin = async (payload) => {
+    const res = await apiClient.post('/tiffin-entries', payload)
+    return res.data
 }
 
-export const approveTiffin = (id) => {
-    const t = data.find(t => t.id === id)
-    if (t) t.status = 'approved'
-    return t
+export const getPendingTiffins = async (centerId) => {
+    const res = await apiClient.get('/approvals/pending', { params: { centerId } })
+    return res.data
 }
 
-export const rejectTiffin = (id) => {
-    const t = data.find(t => t.id === id)
-    if (t) t.status = 'rejected'
-    return t
+export const approveTiffin = async (id, reason = '') => {
+    const res = await apiClient.patch(`/approvals/${id}/approve`, { reason })
+    return res.data
+}
+
+export const rejectTiffin = async (id, reason = '') => {
+    const res = await apiClient.patch(`/approvals/${id}/reject`, { reason })
+    return res.data
+}
+
+export const markNoTiffin = async (userId, date) => {
+    const res = await apiClient.post('/tiffin-entries/no-tiffin', { userId, date })
+    return res.data
+}
+
+export const getMyTiffins = async (userId) => {
+    const res = await apiClient.get('/tiffin-entries', { params: { userId } })
+    return res.data
 }

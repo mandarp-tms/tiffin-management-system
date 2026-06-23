@@ -16,13 +16,13 @@ const LoginPage = () => {
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         if (!username || !password) {
             toast.current.show({ severity: 'warn', summary: 'Required', detail: 'Please enter username and password', life: 2500 })
             return
         }
         setLoading(true)
-        const result = login(username, password)
+        const result = await login(username, password)
         setLoading(false)
         if (result.success) {
             navigate('/dashboard')

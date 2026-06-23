@@ -1,5 +1,6 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Toast } from 'primereact/toast'
+import { useAuth } from '../context/AuthContext'
 import { getPricing, updatePricing } from '../services/pricingService'
 import AppIcon from '../components/AppIcon'
 import AppButton from '../components/AppButton'
@@ -14,9 +15,30 @@ const PRICE_FIELDS = [
 ]
 
 const PricingPage = () => {
+    const { currentUser } = useAuth()
     const toast = useRef(null)
-    const [prices, setPrices] = useState(() => getPricing())
+
+    const [prices, setPrices] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
     const [saved, setSaved] = useState(false)
+
+    // centerId — center role has it directly, admin needs to pass one
+    // For center role: currentUser.centerId is set when they log in
+    const centerId = currentUser?.centerId || 1
+
+    // Load pricing on mount
+    useEffect(() => {
+        if (!centerId) return
+        setLoading(true)
+        getPricing(centerId)
+            .then(data => setPrices(data))
+            .catch(err => {
+                console.error('Load pricing error:', err)
+                toast.current?.show({ severity: 'error', summary: 'Failed to load pricing', life: 3000 })
+            })
+            .finally(() => setLoading(false))
+    }, [centerId])
 
     const updateField = (key, field, value) => {
         setPrices(prev => ({
@@ -27,19 +49,56 @@ const PricingPage = () => {
 
     const getValue = (key) => {
         const field = PRICE_FIELDS.find(f => f.key === key)
-        return field?.hasChapati ? prices[key]?.base : prices[key]?.fixed
+        return field?.hasChapati ? prices?.[key]?.basePrice : prices?.[key]?.basePrice
     }
 
-    const handleSave = () => {
-        updatePricing(prices)
-        setSaved(true)
-        toast.current.show({
-            severity: 'success',
-            summary: 'Pricing saved',
-            detail: 'New prices apply to all future entries',
-            life: 3000,
+    const handleSave = async () => {
+        if (!prices) return
+        setSaving(true)
+
+        // Reshape from { full: { basePrice, defaultChapati } }
+        // to the format backend PUT /pricing expects
+        const shapedPrices = {}
+        PRICE_FIELDS.forEach(f => {
+            shapedPrices[f.key] = {
+                basePrice: prices[f.key]?.basePrice || 0,
+                defaultChapati: prices[f.key]?.defaultChapati || 0,
+                pricePerChapati: prices[f.key]?.pricePerChapati || 5,
+                isFixedPrice: !f.hasChapati,
+            }
         })
-        setTimeout(() => setSaved(false), 3000)
+
+        try {
+            await updatePricing(centerId, shapedPrices)
+            setSaved(true)
+            toast.current.show({
+                severity: 'success',
+                summary: 'Pricing saved',
+                detail: 'New prices apply to all future entries',
+                life: 3000,
+            })
+            setTimeout(() => setSaved(false), 3000)
+        } catch (err) {
+            toast.current.show({
+                severity: 'error',
+                summary: 'Save failed',
+                detail: err?.message || 'Could not save pricing',
+                life: 3000,
+            })
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className={styles.page}>
+                <div className={styles.infoBanner}>
+                    <i className='pi pi-spin pi-spinner' />
+                    <span>Loading pricing...</span>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -60,8 +119,6 @@ const PricingPage = () => {
                     const val = getValue(field.key)
                     return (
                         <div key={field.key} className={styles.priceRow}>
-
-                            {/* Left — icon + label */}
                             <div className={styles.priceLeft}>
                                 <AppIcon name='bag' size={20} color={field.color} />
                                 <div>
@@ -69,8 +126,6 @@ const PricingPage = () => {
                                     <div className={styles.priceSub}>{field.sub}</div>
                                 </div>
                             </div>
-
-                            {/* Right — input */}
                             <div className={styles.priceInput}>
                                 <span className={styles.rupeeSign}>₹</span>
                                 <input
@@ -80,14 +135,13 @@ const PricingPage = () => {
                                     max={999}
                                     onChange={e => updateField(
                                         field.key,
-                                        field.hasChapati ? 'base' : 'fixed',
+                                        'basePrice',
                                         Number(e.target.value)
                                     )}
                                     className={styles.input}
-                                    style={{ color: field.color }}  // ← per-field color stays inline
+                                    style={{ color: field.color }}
                                 />
                             </div>
-
                         </div>
                     )
                 })}
@@ -97,9 +151,10 @@ const PricingPage = () => {
             <div className={styles.saveRow}>
                 <AppButton
                     label={saved ? 'Saved ✓' : 'Save pricing'}
-                    icon={<i className='pi pi-save' />}
+                    icon={<i className={saving ? 'pi pi-spin pi-spinner' : 'pi pi-save'} />}
                     variant={saved ? 'success' : 'primary'}
                     fullWidth
+                    disabled={saving}
                     onClick={handleSave}
                 />
             </div>
