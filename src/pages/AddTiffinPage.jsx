@@ -4,18 +4,17 @@ import { Button } from 'primereact/button'
 import { Toast } from 'primereact/toast'
 import { useAuth } from '../context/AuthContext'
 import { addTiffin, markNoTiffin } from '../services/tiffinService'
+import { getPricing } from '../services/pricingService'
+import { getTiffinUsers } from '../services/userService'
 import { calculateAmount } from '../utils/calculateAmount'
 import { TIFFIN_TYPES, CHAPATI_OPTIONS, SHIFTS, ROLES } from '../utils/constants'
-import { users } from '../mock/users'
 
-// Allowed dates — today and tomorrow only (for users)
 const getDateOptions = () => {
     const today = new Date()
     const tomorrow = new Date()
     tomorrow.setDate(today.getDate() + 1)
 
     const fmt = (d) => d.toISOString().split('T')[0]
-
     const label = (d, offset) => {
         const day = d.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })
         return offset === 0 ? `Today — ${day}` : `Tomorrow — ${day}`
@@ -32,77 +31,171 @@ const AddTiffinPage = () => {
     const toast = useRef(null)
 
     const dateOptions = getDateOptions()
-    const userOptions = users
-        .filter(u => u.role === ROLES.USER)
-        .map(u => ({ label: u.name, value: u.id }))
 
+    // Form state
     const [selectedUser, setSelectedUser] = useState(null)
     const [date, setDate] = useState(dateOptions[0].value)
     const [shift, setShift] = useState('morning')
     const [type, setType] = useState('full')
     const [chapatiCount, setChapatiCount] = useState(3)
     const [note, setNote] = useState('')
-    const [amount, setAmount] = useState(80)
+    const [amount, setAmount] = useState(0)
+    const [submitting, setSubmitting] = useState(false)
 
+    // Remote data
+    const [customers, setCustomers] = useState([])
+    const [pricing, setPricing] = useState(null)
+    const [dataLoading, setDataLoading] = useState(true)
+
+    const centerId = currentUser?.centerId || 1
+
+    // Load customers and pricing on mount
     useEffect(() => {
-        if (isRole(ROLES.CENTER)) setSelectedUser(userOptions[0]?.value)
-    }, [])
+        const loadData = async () => {
+            setDataLoading(true)
+            try {
+                const [customerData, pricingData] = await Promise.all([
+                    isRole(ROLES.CENTER) ? getTiffinUsers(centerId) : Promise.resolve([]),
+                    getPricing(centerId),
+                ])
+                setCustomers(Array.isArray(customerData) ? customerData : [])
+                setPricing(pricingData)
+            } catch (err) {
+                console.error('Load data error:', err)
+                toast.current?.show({ severity: 'error', summary: 'Failed to load data', life: 3000 })
+            } finally {
+                setDataLoading(false)
+            }
+        }
+        loadData()
+    }, [centerId])
 
+    // Set default selected customer for center role
+    useEffect(() => {
+        if (isRole(ROLES.CENTER) && customers.length > 0) {
+            setSelectedUser(customers[0].id)
+        }
+    }, [customers])
+
+    // Recalculate amount when type changes
     useEffect(() => {
         const chapOptions = CHAPATI_OPTIONS[type]
         const defaultChap = chapOptions?.[0]?.value ?? 0
         setChapatiCount(defaultChap)
-        setAmount(calculateAmount(type, defaultChap))
-    }, [type])
-
-    useEffect(() => {
-        setAmount(calculateAmount(type, chapatiCount))
-    }, [chapatiCount])
-
-    const resolvedUserId = isRole(ROLES.USER) ? currentUser.id : selectedUser
-    const resolvedUserName = isRole(ROLES.USER) ? currentUser.name
-        : users.find(u => u.id === selectedUser)?.name || ''
-
-    const handleSubmit = () => {
-        if (!resolvedUserId) {
-            toast.current.show({ severity: 'warn', summary: 'Select a user', life: 2500 })
-            return
+        if (pricing) {
+            setAmount(calculateAmountFromPricing(pricing, type, defaultChap))
         }
-        addTiffin({
-            userId: resolvedUserId,
-            userName: resolvedUserName,
-            date,
-            shift,
-            type,
-            chapatiCount,
-            amount,
-            note,
-            addedBy: isRole(ROLES.CENTER) ? 'center' : 'user',
-        })
-        toast.current.show({
-            severity: 'success',
-            summary: isRole(ROLES.CENTER) ? 'Entry added & approved' : 'Entry submitted',
-            detail: isRole(ROLES.CENTER) ? `Added for ${resolvedUserName}` : 'Awaiting tiffin center approval',
-            life: 3000,
-        })
-        setNote('')
+    }, [type, pricing])
+
+    // Recalculate amount when chapati count changes
+    useEffect(() => {
+        if (pricing) {
+            setAmount(calculateAmountFromPricing(pricing, type, chapatiCount))
+        }
+    }, [chapatiCount, pricing])
+
+    // Calculate from real pricing data (API shape)
+    const calculateAmountFromPricing = (pricingData, tiffinType, chapati) => {
+        const p = pricingData?.[tiffinType]
+        if (!p) return 0
+        if (p.isFixedPrice) return parseFloat(p.basePrice)
+        const diff = (p.defaultChapati - chapati)
+        const result = parseFloat(p.basePrice) - (diff * parseFloat(p.pricePerChapati || 5))
+        return Math.max(0, result)
     }
 
-    const handleNoTiffin = () => {
+    const userOptions = customers.map(u => ({ label: u.name, value: u.id }))
+
+    const resolvedUserId = isRole(ROLES.USER)
+        ? currentUser.id
+        : selectedUser
+
+    const resolvedUserName = isRole(ROLES.USER)
+        ? currentUser.name
+        : customers.find(u => u.id === selectedUser)?.name || ''
+
+    const handleSubmit = async () => {
         if (!resolvedUserId) {
-            toast.current.show({ severity: 'warn', summary: 'Select a user', life: 2500 })
+            toast.current.show({ severity: 'warn', summary: 'Select a customer', life: 2500 })
             return
         }
-        markNoTiffin(resolvedUserId, resolvedUserName, date)
-        toast.current.show({
-            severity: 'info',
-            summary: 'Marked no tiffin',
-            detail: `${resolvedUserName} — ${date}`,
-            life: 3000,
-        })
+        setSubmitting(true)
+        try {
+            await addTiffin({
+                userId: resolvedUserId,
+                date,
+                shift,
+                type,
+                chapatiCount,
+                note,
+            })
+            toast.current.show({
+                severity: 'success',
+                summary: isRole(ROLES.CENTER) ? 'Entry added & approved' : 'Entry submitted',
+                detail: isRole(ROLES.CENTER)
+                    ? `Added for ${resolvedUserName}`
+                    : 'Awaiting tiffin center approval',
+                life: 3000,
+            })
+            setNote('')
+        } catch (err) {
+            toast.current.show({
+                severity: 'error',
+                summary: 'Failed to add tiffin',
+                detail: err?.message || 'Something went wrong',
+                life: 3000,
+            })
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    const handleNoTiffin = async () => {
+        if (!resolvedUserId) {
+            toast.current.show({ severity: 'warn', summary: 'Select a customer', life: 2500 })
+            return
+        }
+        setSubmitting(true)
+        try {
+            await markNoTiffin(resolvedUserId, date)
+            toast.current.show({
+                severity: 'info',
+                summary: 'Marked no tiffin',
+                detail: `${resolvedUserName} — ${date}`,
+                life: 3000,
+            })
+        } catch (err) {
+            toast.current.show({
+                severity: 'error',
+                summary: 'Failed',
+                detail: err?.message || 'Something went wrong',
+                life: 3000,
+            })
+        } finally {
+            setSubmitting(false)
+        }
     }
 
     const chapatiOptions = CHAPATI_OPTIONS[type]
+
+    if (dataLoading) {
+        return (
+            <div style={{ maxWidth: '480px' }}>
+                <div style={{
+                    background: 'var(--surface-card)',
+                    border: '1px solid var(--surface-border)',
+                    borderRadius: '12px',
+                    padding: '2rem',
+                    textAlign: 'center',
+                    color: 'var(--text-color-secondary)',
+                    fontSize: '13px',
+                }}>
+                    <i className='pi pi-spin pi-spinner' style={{ fontSize: '20px', marginBottom: '8px' }} />
+                    <div>Loading...</div>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div style={{ maxWidth: '480px' }}>
@@ -135,22 +228,22 @@ const AddTiffinPage = () => {
 
                 <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-                    {/* User selector — center only */}
+                    {/* Customer selector — center only */}
                     {isRole(ROLES.CENTER) && (
                         <div className='p-fluid'>
                             <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>
-                                User
+                                Customer
                             </label>
                             <Dropdown
                                 value={selectedUser}
                                 options={userOptions}
                                 onChange={e => setSelectedUser(e.value)}
-                                placeholder='Select user'
+                                placeholder='Select customer'
                             />
                         </div>
                     )}
 
-                    {/* Date — dropdown for users (today/tomorrow only), free for center */}
+                    {/* Date */}
                     <div className='p-fluid'>
                         <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>
                             Date
@@ -167,6 +260,15 @@ const AddTiffinPage = () => {
                                     type='date'
                                     value={date}
                                     onChange={e => setDate(e.target.value)}
+                                    style={{
+                                        width: '100%', height: '42px',
+                                        padding: '0 0.75rem',
+                                        border: '1px solid var(--surface-border)',
+                                        borderRadius: '8px',
+                                        fontSize: '14px', fontFamily: 'inherit',
+                                        background: 'var(--surface-card)',
+                                        color: 'var(--text-color)', outline: 'none',
+                                    }}
                                 />
                             )
                         }
@@ -174,34 +276,20 @@ const AddTiffinPage = () => {
 
                     {/* Shift */}
                     <div className='p-fluid'>
-                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>
-                            Shift
-                        </label>
-                        <Dropdown
-                            value={shift}
-                            options={SHIFTS}
-                            onChange={e => setShift(e.value)}
-                        />
+                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>Shift</label>
+                        <Dropdown value={shift} options={SHIFTS} onChange={e => setShift(e.value)} />
                     </div>
 
                     {/* Tiffin type */}
                     <div className='p-fluid'>
-                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>
-                            Tiffin type
-                        </label>
-                        <Dropdown
-                            value={type}
-                            options={TIFFIN_TYPES}
-                            onChange={e => setType(e.value)}
-                        />
+                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>Tiffin type</label>
+                        <Dropdown value={type} options={TIFFIN_TYPES} onChange={e => setType(e.value)} />
                     </div>
 
                     {/* Chapati count */}
-                    {type !== 'dalrice' && chapatiOptions.length > 0 && (
+                    {type !== 'dalrice' && chapatiOptions?.length > 0 && (
                         <div className='p-fluid'>
-                            <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>
-                                Chapati count
-                            </label>
+                            <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>Chapati count</label>
                             <Dropdown
                                 value={chapatiCount}
                                 options={chapatiOptions}
@@ -212,9 +300,7 @@ const AddTiffinPage = () => {
 
                     {/* Note */}
                     <div className='p-fluid'>
-                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>
-                            Note (optional)
-                        </label>
+                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>Note (optional)</label>
                         <input
                             type='text'
                             value={note}
@@ -225,11 +311,9 @@ const AddTiffinPage = () => {
                                 padding: '0 0.75rem',
                                 border: '1px solid var(--surface-border)',
                                 borderRadius: '8px',
-                                fontSize: '14px',
-                                fontFamily: 'inherit',
+                                fontSize: '14px', fontFamily: 'inherit',
                                 background: 'var(--surface-card)',
-                                color: 'var(--text-color)',
-                                outline: 'none',
+                                color: 'var(--text-color)', outline: 'none',
                             }}
                         />
                     </div>
@@ -270,12 +354,14 @@ const AddTiffinPage = () => {
                             severity='secondary'
                             outlined
                             style={{ flex: 1 }}
+                            disabled={submitting}
                             onClick={handleNoTiffin}
                         />
                         <Button
                             label={isRole(ROLES.CENTER) ? 'Add & approve' : 'Submit'}
-                            icon='pi pi-check'
+                            icon={submitting ? 'pi pi-spin pi-spinner' : 'pi pi-check'}
                             style={{ flex: 2 }}
+                            disabled={submitting}
                             onClick={handleSubmit}
                         />
                     </div>

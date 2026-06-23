@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { FaTimes } from 'react-icons/fa'
 import { Toast } from 'primereact/toast'
 import AppButton from '../components/AppButton'
 import AppDropdown from '../components/AppDropdown'
 import StatusBadge from '../components/StatusBadge'
-import { recordPayment, getPayment, calculateTotalDue } from '../services/paymentService'
+import { getPayment, recordPayment } from '../services/paymentService'
 import { useAuth } from '../context/AuthContext'
 import styles from './PaymentModal.module.css'
 
@@ -15,54 +15,81 @@ const PAYMENT_METHODS = [
     { label: '💳 Card', value: 'card' },
 ]
 
-const CURRENT_MONTH = 6
-const CURRENT_YEAR = 2025
+const now = new Date()
+const CURRENT_MONTH = now.getMonth() + 1
+const CURRENT_YEAR = now.getFullYear()
+const MONTH_LABEL = now.toLocaleString('en-IN', { month: 'long', year: 'numeric' })
 
 const PaymentModal = ({ customer, centerId, onClose, onSuccess }) => {
     const { currentUser } = useAuth()
     const toast = useRef(null)
-    const totalDue = calculateTotalDue(customer.id, centerId, CURRENT_MONTH, CURRENT_YEAR)
-    const existing = getPayment(customer.id, centerId, CURRENT_MONTH, CURRENT_YEAR)
-    const alreadyPaid = existing?.amountPaid || 0
-    const balanceDue = Math.max(0, totalDue - alreadyPaid)
 
+    const [payment, setPayment] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [submitting, setSubmitting] = useState(false)
     const [amount, setAmount] = useState('')
     const [method, setMethod] = useState('cash')
     const [reference, setReference] = useState('')
     const [note, setNote] = useState('')
-    const [loading, setLoading] = useState(false)
 
-    const handleRecord = () => {
+    // Load existing payment on open
+    useEffect(() => {
+        setLoading(true)
+        getPayment(customer.id, centerId, CURRENT_MONTH, CURRENT_YEAR)
+            .then(data => setPayment(data))
+            .catch(err => console.error('Load payment error:', err))
+            .finally(() => setLoading(false))
+    }, [customer.id, centerId])
+
+    const totalDue = customer.totalDue || 0
+    const alreadyPaid = parseFloat(payment?.amountPaid || 0)
+    const balanceDue = Math.max(0, totalDue - alreadyPaid)
+    const payStatus = alreadyPaid === 0 ? 'unpaid' : balanceDue <= 0 ? 'paid' : 'partial'
+
+    const handleRecord = async () => {
         const amt = parseFloat(amount)
         if (!amt || amt <= 0) {
             toast.current.show({ severity: 'warn', summary: 'Enter valid amount', life: 2000 })
             return
         }
         if (amt > balanceDue) {
-            toast.current.show({ severity: 'warn', summary: `Amount exceeds balance due ₹${balanceDue}`, life: 2500 })
+            toast.current.show({
+                severity: 'warn',
+                summary: `Amount exceeds balance due ₹${balanceDue}`,
+                life: 2500,
+            })
             return
         }
-        setLoading(true)
-        const result = recordPayment({
-            userId: customer.id,
-            userName: customer.name,
-            centerId,
-            month: CURRENT_MONTH,
-            year: CURRENT_YEAR,
-            amount: amt,
-            method,
-            reference,
-            note,
-            recordedBy: currentUser?.name,
-        })
-        setLoading(false)
-        toast.current.show({ severity: 'success', summary: 'Payment recorded', detail: `₹${amt} recorded for ${customer.name}`, life: 2000 })
-        setTimeout(() => { onSuccess?.(result); onClose() }, 1200)
+        setSubmitting(true)
+        try {
+            await recordPayment({
+                userId: customer.id,
+                centerId,
+                month: CURRENT_MONTH,
+                year: CURRENT_YEAR,
+                amount: amt,
+                method,
+                reference,
+                note,
+            })
+            toast.current.show({
+                severity: 'success',
+                summary: 'Payment recorded',
+                detail: `₹${amt} recorded for ${customer.name}`,
+                life: 2000,
+            })
+            setTimeout(() => { onSuccess?.(); onClose() }, 1200)
+        } catch (err) {
+            toast.current.show({
+                severity: 'error',
+                summary: 'Failed to record payment',
+                detail: err?.message || 'Something went wrong',
+                life: 3000,
+            })
+        } finally {
+            setSubmitting(false)
+        }
     }
-
-    const paymentStatus = existing
-        ? (existing.balanceDue <= 0 ? 'paid' : 'partial')
-        : 'unpaid'
 
     return (
         <div className={styles.overlay} onClick={onClose}>
@@ -73,137 +100,142 @@ const PaymentModal = ({ customer, centerId, onClose, onSuccess }) => {
                 <div className={styles.header}>
                     <div>
                         <div className={styles.title}>Record payment — {customer.name}</div>
-                        <div className={styles.sub}>June 2025</div>
+                        <div className={styles.sub}>{MONTH_LABEL}</div>
                     </div>
                     <div className={styles.closeBtn} onClick={onClose}>
                         <FaTimes size={15} color='var(--text-color-secondary)' />
                     </div>
                 </div>
 
-                {/* Summary cards */}
-                <div className={styles.summaryRow}>
-                    <div className={styles.summaryCard}>
-                        <div className={styles.summaryLabel}>Total due</div>
-                        <div className={styles.summaryValue}>₹{totalDue}</div>
+                {loading ? (
+                    <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-color-secondary)', fontSize: '13px' }}>
+                        Loading...
                     </div>
-                    <div className={styles.summaryCard}>
-                        <div className={styles.summaryLabel}>Already paid</div>
-                        <div className={`${styles.summaryValue} ${styles.green}`}>₹{alreadyPaid}</div>
-                    </div>
-                    <div className={styles.summaryCard}>
-                        <div className={styles.summaryLabel}>Balance due</div>
-                        <div className={`${styles.summaryValue} ${balanceDue > 0 ? styles.red : styles.green}`}>
-                            ₹{balanceDue}
-                        </div>
-                    </div>
-                    <div className={styles.summaryCard}>
-                        <div className={styles.summaryLabel}>Status</div>
-                        <div style={{ marginTop: '4px' }}>
-                            <StatusBadge status={paymentStatus} />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Already fully paid */}
-                {balanceDue <= 0 && (
-                    <div className={styles.paidBanner}>
-                        ✅ This customer has fully paid for June 2025
-                    </div>
-                )}
-
-                {/* Payment form */}
-                {balanceDue > 0 && (
-                    <div className={styles.form}>
-                        <div className={styles.formGroup}>
-                            <label className={styles.label}>Amount (max ₹{balanceDue})</label>
-                            <div className={styles.amountInput}>
-                                <span className={styles.rupee}>₹</span>
-                                <input
-                                    type='number'
-                                    className={styles.amountField}
-                                    placeholder={`0 – ${balanceDue}`}
-                                    value={amount}
-                                    min={1}
-                                    max={balanceDue}
-                                    onChange={e => setAmount(e.target.value)}
-                                />
-                                <button
-                                    className={styles.fullBtn}
-                                    onClick={() => setAmount(String(balanceDue))}
-                                >
-                                    Full
-                                </button>
+                ) : (
+                    <>
+                        {/* Summary cards */}
+                        <div className={styles.summaryRow}>
+                            <div className={styles.summaryCard}>
+                                <div className={styles.summaryLabel}>Total due</div>
+                                <div className={styles.summaryValue}>₹{totalDue}</div>
+                            </div>
+                            <div className={styles.summaryCard}>
+                                <div className={styles.summaryLabel}>Already paid</div>
+                                <div className={`${styles.summaryValue} ${styles.green}`}>₹{alreadyPaid}</div>
+                            </div>
+                            <div className={styles.summaryCard}>
+                                <div className={styles.summaryLabel}>Balance due</div>
+                                <div className={`${styles.summaryValue} ${balanceDue > 0 ? styles.red : styles.green}`}>
+                                    ₹{balanceDue}
+                                </div>
+                            </div>
+                            <div className={styles.summaryCard}>
+                                <div className={styles.summaryLabel}>Status</div>
+                                <div style={{ marginTop: '4px' }}>
+                                    <StatusBadge status={payStatus} />
+                                </div>
                             </div>
                         </div>
 
-                        <div className={styles.formGroup}>
-                            <AppDropdown
-                                label='Payment method'
-                                value={method}
-                                options={PAYMENT_METHODS}
-                                onChange={e => setMethod(e.value)}
-                            />
-                        </div>
-
-                        {(method === 'upi' || method === 'bank') && (
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>Reference / Transaction ID</label>
-                                <input
-                                    type='text'
-                                    className={styles.textInput}
-                                    placeholder='e.g. UPI123456789'
-                                    value={reference}
-                                    onChange={e => setReference(e.target.value)}
-                                />
+                        {/* Already fully paid */}
+                        {balanceDue <= 0 && (
+                            <div className={styles.paidBanner}>
+                                ✅ {customer.name} has fully paid for {MONTH_LABEL}
                             </div>
                         )}
 
-                        <div className={styles.formGroup}>
-                            <label className={styles.label}>Note (optional)</label>
-                            <input
-                                type='text'
-                                className={styles.textInput}
-                                placeholder='e.g. Second installment'
-                                value={note}
-                                onChange={e => setNote(e.target.value)}
-                            />
-                        </div>
-                    </div>
-                )}
-
-                {/* Transaction history */}
-                {existing?.transactions?.length > 0 && (
-                    <div className={styles.historySection}>
-                        <div className={styles.historyTitle}>Payment history</div>
-                        {existing.transactions.map((tx, i) => (
-                            <div key={tx.id} className={styles.txRow}>
-                                <div className={styles.txLeft}>
-                                    <div className={styles.txAmount}>₹{tx.amount}</div>
-                                    <div className={styles.txMeta}>
-                                        {tx.method.toUpperCase()}
-                                        {tx.reference ? ` · ${tx.reference}` : ''}
-                                        {tx.note ? ` · ${tx.note}` : ''}
+                        {/* Payment form */}
+                        {balanceDue > 0 && (
+                            <div className={styles.form}>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Amount (max ₹{balanceDue})</label>
+                                    <div className={styles.amountInput}>
+                                        <span className={styles.rupee}>₹</span>
+                                        <input
+                                            type='number'
+                                            className={styles.amountField}
+                                            placeholder={`0 – ${balanceDue}`}
+                                            value={amount}
+                                            min={1}
+                                            max={balanceDue}
+                                            onChange={e => setAmount(e.target.value)}
+                                        />
+                                        <button className={styles.fullBtn} onClick={() => setAmount(String(balanceDue))}>
+                                            Full
+                                        </button>
                                     </div>
                                 </div>
-                                <div className={styles.txRight}>
-                                    <div className={styles.txDate}>
-                                        {new Date(tx.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+
+                                <div className={styles.formGroup}>
+                                    <AppDropdown
+                                        label='Payment method'
+                                        value={method}
+                                        options={PAYMENT_METHODS}
+                                        onChange={e => setMethod(e.value)}
+                                    />
+                                </div>
+
+                                {(method === 'upi' || method === 'bank') && (
+                                    <div className={styles.formGroup}>
+                                        <label className={styles.label}>Reference / Transaction ID</label>
+                                        <input
+                                            type='text'
+                                            className={styles.textInput}
+                                            placeholder='e.g. UPI123456789'
+                                            value={reference}
+                                            onChange={e => setReference(e.target.value)}
+                                        />
                                     </div>
-                                    <div className={styles.txBy}>by {tx.recordedBy}</div>
+                                )}
+
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Note (optional)</label>
+                                    <input
+                                        type='text'
+                                        className={styles.textInput}
+                                        placeholder='e.g. Second installment'
+                                        value={note}
+                                        onChange={e => setNote(e.target.value)}
+                                    />
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        )}
+
+                        {/* Transaction history */}
+                        {payment?.transactions?.length > 0 && (
+                            <div className={styles.historySection}>
+                                <div className={styles.historyTitle}>Payment history</div>
+                                {payment.transactions.map((tx, i) => (
+                                    <div key={tx.id || i} className={styles.txRow}>
+                                        <div className={styles.txLeft}>
+                                            <span className={styles.txAmount}>₹{tx.amount}</span>
+                                            <span className={styles.txMethod}>
+                                                {tx.method?.toUpperCase()}
+                                                {tx.reference ? ` · ${tx.reference}` : ''}
+                                            </span>
+                                            {tx.note && <span className={styles.txNote}>{tx.note}</span>}
+                                        </div>
+                                        <div className={styles.txRight}>
+                                            <span className={styles.txDate}>
+                                                {new Date(tx.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                                            </span>
+                                            <span className={styles.txBy}>by {tx.recordedByName || tx.recordedBy}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
                 )}
 
                 {/* Footer */}
                 <div className={styles.footer}>
                     <AppButton label='Cancel' variant='secondary' onClick={onClose} />
-                    {balanceDue > 0 && (
+                    {!loading && balanceDue > 0 && (
                         <AppButton
-                            label='Record payment'
+                            label={submitting ? 'Recording...' : 'Record payment'}
                             variant='primary'
-                            loading={loading}
+                            loading={submitting}
                             onClick={handleRecord}
                         />
                     )}

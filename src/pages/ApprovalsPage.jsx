@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Toast } from 'primereact/toast'
 import { FaCheck, FaTimes } from 'react-icons/fa'
+import { useAuth } from '../context/AuthContext'
 import AppDataTable from '../components/AppDataTable'
 import AppButton from '../components/AppButton'
 import StatusBadge from '../components/StatusBadge'
@@ -10,31 +11,93 @@ import { formatDate } from '../utils/formatDate'
 import styles from './ApprovalsPage.module.css'
 
 const ApprovalsPage = () => {
+    const { currentUser } = useAuth()
     const toast = useRef(null)
-    const [data, setData] = useState(() => getPendingTiffins())
 
-    const refresh = () => setData(getPendingTiffins())
+    const [data, setData] = useState([])
+    const [loading, setLoading] = useState(true)
 
-    const handleApprove = (id) => {
-        approveTiffin(id)
-        toast.current.show({ severity: 'success', summary: 'Approved', life: 2000 })
-        refresh()
+    const centerId = currentUser?.centerId || 1
+
+    const fetchPending = useCallback(async () => {
+        setLoading(true)
+        try {
+            const result = await getPendingTiffins(centerId)
+            // API returns array directly (res.data from service)
+            setData(Array.isArray(result) ? result : [])
+        } catch (err) {
+            console.error('Fetch pending error:', err)
+            toast.current?.show({ severity: 'error', summary: 'Failed to load approvals', life: 3000 })
+            setData([])
+        } finally {
+            setLoading(false)
+        }
+    }, [centerId])
+
+    useEffect(() => { fetchPending() }, [fetchPending])
+
+    const handleApprove = async (id) => {
+        try {
+            await approveTiffin(id)
+            toast.current.show({ severity: 'success', summary: 'Approved', life: 2000 })
+            fetchPending()
+        } catch (err) {
+            toast.current.show({
+                severity: 'error',
+                summary: 'Approve failed',
+                detail: err?.message || 'Could not approve entry',
+                life: 3000,
+            })
+        }
     }
 
-    const handleReject = (id) => {
-        rejectTiffin(id)
-        toast.current.show({ severity: 'warn', summary: 'Rejected', life: 2000 })
-        refresh()
+    const handleReject = async (id) => {
+        try {
+            await rejectTiffin(id)
+            toast.current.show({ severity: 'warn', summary: 'Rejected', life: 2000 })
+            fetchPending()
+        } catch (err) {
+            toast.current.show({
+                severity: 'error',
+                summary: 'Reject failed',
+                detail: err?.message || 'Could not reject entry',
+                life: 3000,
+            })
+        }
     }
 
     const columns = [
-        { header: 'Customer', field: 'userName', noWrap: true },
-        { header: 'Date', body: row => formatDate(row.date), noWrap: true },
-        { header: 'Shift', body: row => <StatusBadge status={row.shift || 'morning'} /> },
-        { header: 'Type', body: row => <StatusBadge status={row.type} label={TYPE_LABELS[row.type]} /> },
-        { header: 'Chapati', body: row => row.chapatiCount || '—', align: 'center' },
-        { header: 'Amount', body: row => <span className={styles.amount}>₹{row.amount}</span> },
-        { header: 'Status', body: row => <StatusBadge status={row.status} /> },
+        {
+            header: 'Customer',
+            body: row => row.user?.name || row.userName || '—',
+            noWrap: true,
+        },
+        {
+            header: 'Date',
+            body: row => formatDate(row.entryDate),   // ← entryDate not date
+            noWrap: true,
+        },
+        {
+            header: 'Shift',
+            body: row => <StatusBadge status={row.shift || 'morning'} />,
+        },
+        {
+            header: 'Type',
+            body: row => <StatusBadge status={row.tiffinType} label={TYPE_LABELS[row.tiffinType]} />,  // ← tiffinType not type
+        },
+        {
+            header: 'Chapati',
+            body: row => row.chapatiCount || '—',
+            align: 'center',
+        },
+        {
+            header: 'Amount',
+            body: row => <span className={styles.amount}>₹{row.amount}</span>,
+        },
+        {
+            header: 'Status',
+            body: row => <StatusBadge status={row.status} />,
+        },
         {
             header: 'Actions',
             width: '200px',
@@ -71,11 +134,11 @@ const ApprovalsPage = () => {
                 <AppDataTable
                     columns={columns}
                     data={data}
+                    loading={loading}
                     emptyMessage='All caught up! No pending approvals.'
                     pageSize={10}
                 />
             </div>
-
         </div>
     )
 }

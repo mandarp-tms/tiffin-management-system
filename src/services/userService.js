@@ -1,14 +1,30 @@
-import { users } from '../mock/users'
-import { getAllTiffins } from './tiffinService'
-import { ROLES } from '../utils/constants'
+import apiClient from '../utils/apiClient'
 
-export const getTiffinUsers = () =>
-    users.filter(u => u.role === ROLES.USER)
+export const getTiffinUsers = async (centerId) => {
+    const res = await apiClient.get('/users', { params: { centerId, role: 'user' } })
+    return res.data
+}
 
-export const getUserStats = (userId) => {
-    const tiffins = getAllTiffins().filter(t => t.userId === userId)
-    const approved = tiffins.filter(t => t.status === 'approved' && t.type !== 'none')
-    const pending = tiffins.filter(t => t.status === 'pending')
-    const total = approved.reduce((sum, t) => sum + t.amount, 0)
-    return { tiffins, approved, pending, total }
+export const getUserById = async (id) => {
+    const res = await apiClient.get(`/users/${id}`)
+    return res.data
+}
+
+export const getUserStats = async (id, month, year) => {
+    const res = await apiClient.get(`/users/${id}/stats`, { params: { month, year } })
+    return res.data
+}
+
+export const createUser = async (payload) => {
+    const res = await apiClient.post('/users', payload)
+    return res.data
+}
+
+export const updateUser = async (id, payload) => {
+    const res = await apiClient.patch(`/users/${id}`, payload)
+    return res.data
+}
+
+export const deleteUser = async (id) => {
+    await apiClient.delete(`/users/${id}`)
 }

@@ -1,12 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { FaTimes, FaUsers, FaTag } from 'react-icons/fa'
 import clsx from 'clsx'
 import AppButton from '../components/AppButton'
 import AppDataTable from '../components/AppDataTable'
 import StatusBadge from '../components/StatusBadge'
-import { getAllCenters, getCustomersByCenter, getCenterStats } from '../services/tiffinCenterService'
+import { getAllCenters, getCenterCustomers } from '../services/tiffinCenterService'
 import { getPricing, updatePricing } from '../services/pricingService'
-import { getAllTiffins } from '../services/tiffinService'
 import { TYPE_LABELS } from '../utils/constants'
 import styles from './TiffinCentersPage.module.css'
 
@@ -21,11 +20,7 @@ const PRICE_FIELDS = [
 // ── Shared modal wrapper ───────────────────────────────────────
 const ModalWrap = ({ onClose, children, maxWidth = '480px' }) => (
     <div className={styles.modalOverlay} onClick={onClose}>
-        <div
-            className={styles.modal}
-            style={{ maxWidth }}
-            onClick={e => e.stopPropagation()}
-        >
+        <div className={styles.modal} style={{ maxWidth }} onClick={e => e.stopPropagation()}>
             {children}
         </div>
     </div>
@@ -45,21 +40,45 @@ const ModalHeader = ({ title, sub, onClose }) => (
 
 // ── Pricing Modal ──────────────────────────────────────────────
 const PricingModal = ({ center, onClose }) => {
-    const [prices, setPrices] = useState(() => getPricing(center.id))
+    const [prices, setPrices] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
     const [saved, setSaved] = useState(false)
 
-    const getValue = (key) => {
-        const f = PRICE_FIELDS.find(f => f.key === key)
-        return f?.hasChapati ? prices[key]?.base : prices[key]?.fixed
-    }
+    useEffect(() => {
+        setLoading(true)
+        getPricing(center.id)
+            .then(data => setPrices(data))
+            .catch(err => console.error('Load pricing error:', err))
+            .finally(() => setLoading(false))
+    }, [center.id])
 
-    const updateField = (key, field, value) =>
-        setPrices(prev => ({ ...prev, [key]: { ...prev[key], [field]: value } }))
+    const getValue = (key) => prices?.[key]?.basePrice ?? ''
 
-    const handleSave = () => {
-        updatePricing(center.id, prices)
-        setSaved(true)
-        setTimeout(() => { setSaved(false); onClose() }, 900)
+    const updateField = (key, value) =>
+        setPrices(prev => ({ ...prev, [key]: { ...prev[key], basePrice: value } }))
+
+    const handleSave = async () => {
+        if (!prices) return
+        setSaving(true)
+        try {
+            const shapedPrices = {}
+            PRICE_FIELDS.forEach(f => {
+                shapedPrices[f.key] = {
+                    basePrice: prices[f.key]?.basePrice || 0,
+                    defaultChapati: prices[f.key]?.defaultChapati || 0,
+                    pricePerChapati: prices[f.key]?.pricePerChapati || 5,
+                    isFixedPrice: !f.hasChapati,
+                }
+            })
+            await updatePricing(center.id, shapedPrices)
+            setSaved(true)
+            setTimeout(() => { setSaved(false); onClose() }, 900)
+        } catch (err) {
+            console.error('Save pricing error:', err)
+        } finally {
+            setSaving(false)
+        }
     }
 
     return (
@@ -74,34 +93,42 @@ const PricingModal = ({ center, onClose }) => {
                 Each chapati below default reduces price by <strong>₹5</strong>
             </div>
 
-            <div className={styles.pricingList}>
-                {PRICE_FIELDS.map(field => (
-                    <div key={field.key} className={styles.pricingRow}>
-                        <div>
-                            <div className={styles.pricingLabel}>{field.label}</div>
-                            <div className={styles.pricingSub}>{field.sub}</div>
+            {loading ? (
+                <div style={{ padding: '2rem', textAlign: 'center', fontSize: '13px', color: 'var(--text-color-secondary)' }}>
+                    Loading pricing...
+                </div>
+            ) : (
+                <div className={styles.pricingList}>
+                    {PRICE_FIELDS.map(field => (
+                        <div key={field.key} className={styles.pricingRow}>
+                            <div>
+                                <div className={styles.pricingLabel}>{field.label}</div>
+                                <div className={styles.pricingSub}>{field.sub}</div>
+                            </div>
+                            <div className={styles.pricingInput}>
+                                <span className={styles.rupeeSign}>₹</span>
+                                <input
+                                    type='number'
+                                    className={styles.numberInput}
+                                    value={getValue(field.key)}
+                                    min={0}
+                                    max={999}
+                                    onChange={e => updateField(field.key, Number(e.target.value))}
+                                />
+                            </div>
                         </div>
-                        <div className={styles.pricingInput}>
-                            <span className={styles.rupeeSign}>₹</span>
-                            <input
-                                type='number'
-                                className={styles.numberInput}
-                                value={getValue(field.key) ?? ''}
-                                min={0} max={999}
-                                onChange={e => updateField(
-                                    field.key,
-                                    field.hasChapati ? 'base' : 'fixed',
-                                    Number(e.target.value)
-                                )}
-                            />
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             <div className={styles.modalFooter}>
                 <AppButton label='Cancel' variant='secondary' onClick={onClose} />
-                <AppButton label={saved ? 'Saved ✓' : 'Save pricing'} variant={saved ? 'success' : 'primary'} onClick={handleSave} />
+                <AppButton
+                    label={saved ? 'Saved ✓' : 'Save pricing'}
+                    variant={saved ? 'success' : 'primary'}
+                    disabled={saving || loading}
+                    onClick={handleSave}
+                />
             </div>
         </ModalWrap>
     )
@@ -109,26 +136,21 @@ const PricingModal = ({ center, onClose }) => {
 
 // ── Customers Modal ────────────────────────────────────────────
 const CustomersModal = ({ center, onClose }) => {
-    const customers = getCustomersByCenter(center.id)
-    const tiffins = getAllTiffins()
+    const [customers, setCustomers] = useState([])
+    const [loading, setLoading] = useState(true)
 
-    const stats = customers.map(u => {
-        const mine = tiffins.filter(t => t.userId === u.id)
-        const approved = mine.filter(t => t.status === 'approved' && t.type !== 'none')
-        const pending = mine.filter(t => t.status === 'pending')
-        const total = approved.reduce((s, t) => s + t.amount, 0)
-        const typeCounts = approved.reduce((acc, t) => {
-            acc[t.type] = (acc[t.type] || 0) + 1
-            return acc
-        }, {})
-        const favouriteType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
-        return { ...u, approved: approved.length, pending: pending.length, total, favouriteType }
-    })
+    useEffect(() => {
+        setLoading(true)
+        getCenterCustomers(center.id)
+            .then(data => setCustomers(Array.isArray(data) ? data : []))
+            .catch(err => console.error('Load customers error:', err))
+            .finally(() => setLoading(false))
+    }, [center.id])
 
     const statCells = (u) => [
-        { label: 'Amount due', value: `₹${u.total}`, color: '#0F6E56' },
-        { label: 'Tiffins', value: u.approved, color: 'var(--text-color)' },
-        { label: 'Pending', value: u.pending, color: '#BA7517' },
+        { label: 'Amount due', value: `₹${u.total || 0}`, color: '#0F6E56' },
+        { label: 'Tiffins', value: u.approvedCount || 0, color: 'var(--text-color)' },
+        { label: 'Pending', value: u.pending || 0, color: '#BA7517' },
         { label: 'Favourite', value: TYPE_LABELS[u.favouriteType] || '—', color: '#534AB7' },
     ]
 
@@ -136,46 +158,45 @@ const CustomersModal = ({ center, onClose }) => {
         <ModalWrap onClose={onClose} maxWidth='600px'>
             <ModalHeader
                 title={`Customers — ${center.name}`}
-                sub={`${customers.length} customer${customers.length !== 1 ? 's' : ''}`}
+                sub={loading ? 'Loading...' : `${customers.length} customer${customers.length !== 1 ? 's' : ''}`}
                 onClose={onClose}
             />
 
             <div className={styles.customerList}>
-                {stats.length === 0 && (
-                    <div className={styles.emptyState}>No customers assigned to this center yet.</div>
-                )}
-
-                {stats.map(u => (
-                    <div key={u.id} className={styles.customerCard}>
-
-                        <div className={styles.customerHead}>
-                            <div className={styles.customerAvatar}>{u.avatar}</div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                                <div className={styles.customerName}>{u.name}</div>
-                                <div className={styles.customerUsername}>@{u.username}</div>
-                            </div>
-                            <StatusBadge status='active' />
-                        </div>
-
-                        <div className={styles.customerStats}>
-                            {statCells(u).map((stat, i) => (
-                                <div
-                                    key={stat.label}
-                                    className={clsx(
-                                        styles.customerStatCell,
-                                        i < 3 && styles.borderRight,
-                                    )}
-                                >
-                                    <div className={styles.customerStatLabel}>{stat.label}</div>
-                                    <div className={styles.customerStatValue} style={{ color: stat.color }}>
-                                        {stat.value}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
+                {loading ? (
+                    <div style={{ padding: '2rem', textAlign: 'center', fontSize: '13px', color: 'var(--text-color-secondary)' }}>
+                        <i className='pi pi-spin pi-spinner' style={{ fontSize: '18px', display: 'block', marginBottom: '8px' }} />
+                        Loading customers...
                     </div>
-                ))}
+                ) : customers.length === 0 ? (
+                    <div className={styles.emptyState}>No customers assigned to this center yet.</div>
+                ) : (
+                    customers.map(u => (
+                        <div key={u.id} className={styles.customerCard}>
+                            <div className={styles.customerHead}>
+                                <div className={styles.customerAvatar}>{u.avatar}</div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div className={styles.customerName}>{u.name}</div>
+                                    <div className={styles.customerUsername}>@{u.username}</div>
+                                </div>
+                                <StatusBadge status='active' />
+                            </div>
+                            <div className={styles.customerStats}>
+                                {statCells(u).map((stat, i) => (
+                                    <div
+                                        key={stat.label}
+                                        className={clsx(styles.customerStatCell, i < 3 && styles.borderRight)}
+                                    >
+                                        <div className={styles.customerStatLabel}>{stat.label}</div>
+                                        <div className={styles.customerStatValue} style={{ color: stat.color }}>
+                                            {stat.value}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
         </ModalWrap>
     )
@@ -183,12 +204,18 @@ const CustomersModal = ({ center, onClose }) => {
 
 // ── Main Page ──────────────────────────────────────────────────
 const TiffinCentersPage = () => {
+    const [tableData, setTableData] = useState([])
+    const [loading, setLoading] = useState(true)
     const [pricingModal, setPricingModal] = useState(null)
     const [customersModal, setCustomersModal] = useState(null)
 
-    const tableData = useMemo(() =>
-        getAllCenters().map(c => ({ ...c, ...getCenterStats(c.id) }))
-        , [])
+    useEffect(() => {
+        setLoading(true)
+        getAllCenters()
+            .then(data => setTableData(Array.isArray(data) ? data : []))
+            .catch(err => console.error('Load centers error:', err))
+            .finally(() => setLoading(false))
+    }, [])
 
     const columns = [
         {
@@ -215,8 +242,8 @@ const TiffinCentersPage = () => {
             header: 'This month',
             body: row => (
                 <div>
-                    <div className={styles.amountValue}>₹{row.totalAmount}</div>
-                    <div className={styles.amountSub}>{row.tiffinCount} tiffins</div>
+                    <div className={styles.amountValue}>₹{row.totalAmount || 0}</div>
+                    <div className={styles.amountSub}>{row.tiffinCount || 0} tiffins</div>
                 </div>
             ),
         },
@@ -225,7 +252,7 @@ const TiffinCentersPage = () => {
             align: 'center',
             body: row => (
                 <AppButton
-                    label={`${row.customerCount} customers`}
+                    label={`${row.customerCount || 0} customers`}
                     icon={<FaUsers size={12} />}
                     variant='secondary'
                     size='sm'
@@ -252,7 +279,9 @@ const TiffinCentersPage = () => {
 
             <div className={styles.header}>
                 <div className={styles.title}>Tiffin Centers</div>
-                <div className={styles.sub}>{tableData.length} center{tableData.length !== 1 ? 's' : ''} registered</div>
+                <div className={styles.sub}>
+                    {loading ? '...' : `${tableData.length} center${tableData.length !== 1 ? 's' : ''} registered`}
+                </div>
             </div>
 
             <div className={styles.banner}>
@@ -268,6 +297,7 @@ const TiffinCentersPage = () => {
                 <AppDataTable
                     columns={columns}
                     data={tableData}
+                    loading={loading}
                     emptyMessage='No tiffin centers registered yet.'
                     pageSize={10}
                 />

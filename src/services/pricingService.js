@@ -1,10 +1,11 @@
-import { pricingByCenter } from '../mock/pricing'
+import apiClient from '../utils/apiClient'
 
-let data = JSON.parse(JSON.stringify(pricingByCenter))
+export const getPricing = async (centerId) => {
+    const res = await apiClient.get('/pricing', { params: { centerId } })
+    return res.data
+}
 
-export const getPricing = (centerId = 1) => ({ ...data[centerId] })
-
-export const updatePricing = (centerId = 1, newPricing) => {
-    data[centerId] = { ...newPricing }
-    return data[centerId]
+export const updatePricing = async (centerId, prices) => {
+    const res = await apiClient.put('/pricing', { centerId, prices })
+    return res.data
 }
