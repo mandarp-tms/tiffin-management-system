@@ -47,10 +47,12 @@ const Sidebar = ({ onNavigate }) => {
 
             {/* Brand */}
             <div className={styles.brand}>
-                <img src={logo} alt='Tiffin Manager' className={styles.brandLogo} />
+                {/* <img src={logo} alt='Tiffinger' className={styles.brandLogo} /> */}
                 <div>
-                    <div className={styles.brandName}>Tiffin Manager</div>
-                    <div className={styles.brandRole}>{ROLE_LABELS[role]}</div>
+                    <h2 className={styles.brandTitle}>
+                        <span className={styles.brandTitleSpan}>Tiffi</span>nger
+                    </h2>
+                    {/* <div className={styles.brandRole}>{ROLE_LABELS[role]}</div> */}
                 </div>
             </div>
 

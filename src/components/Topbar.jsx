@@ -20,7 +20,7 @@ const Topbar = ({ onHamburgerClick, isMobile }) => {
     const { currentUser, logout } = useAuth()
     const navigate = useNavigate()
     const location = useLocation()
-    const title = PAGE_TITLES[location.pathname] || 'Tiffin Manager'
+    const title = PAGE_TITLES[location.pathname] || 'Tiffinger'
 
     const handleLogout = () => { logout(); navigate('/login') }
 
@@ -32,8 +32,12 @@ const Topbar = ({ onHamburgerClick, isMobile }) => {
                         <AppIcon name='menu' size={18} color='var(--text-color)' />
                     </button>
                 )}
-                {isMobile && <img src={logo} alt='logo' className={styles.logo} />}
-                <span className={clsx(styles.title, isMobile && styles.mobile)}>{title}</span>
+                {/* {isMobile && <img src={logo} alt='logo' className={styles.logo} />} */}
+                {isMobile &&
+                    <h2 className={styles.brandTitle}>
+                        <span className={styles.brandTitleSpan}>Tiffi</span>nger
+                    </h2>
+                }
             </div>
 
             <div className={styles.right}>

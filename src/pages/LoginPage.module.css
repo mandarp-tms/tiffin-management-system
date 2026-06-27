@@ -1,21 +1,141 @@
+/* ─── Page shell: side-by-side split ─── */
 .page {
     min-height: 100vh;
     display: flex;
+    flex-direction: row;
+    background: var(--surface-ground);
+}
+
+/* ─── LEFT: decorative panel (40%) ─── */
+.sidePanel {
+    flex: 0 0 60%;
+    background: #1D9E75;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    padding: 3rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.sidePanel::before {
+    content: '';
+    position: absolute;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.07);
+    top: -80px;
+    right: -80px;
+    pointer-events: none;
+}
+
+.sidePanel::after {
+    content: '';
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    bottom: -50px;
+    left: -50px;
+    pointer-events: none;
+}
+
+.sidePanelInner {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    color: #ffffff;
+}
+
+/* Brand title inside side panel (replaces icon) */
+.sidePanelBrand {
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0;
+}
+
+.sidePanelBrandSpan {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    padding: 0px 8px 3px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    line-height: 1.3;
+}
+
+.sidePanelTitle {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+}
+
+.sidePanelSub {
+    font-size: 14px;
+    opacity: 0.82;
+    line-height: 1.7;
+    max-width: 240px;
+    margin: 0 auto 2rem;
+}
+
+.featureList {
+    list-style: none;
+    display: flex;
+    /* flex-direction: column; */
+    gap: 12px;
+    text-align: center;
+    padding: 0;
+}
+
+.featureList li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.featureDot {
+    width: 22px;
+    height: 22px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 11px;
+}
+
+/* ─── RIGHT: login form (60%) ─── */
+.panel {
+    flex: 0 0 40%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
     background: var(--surface-ground);
-    padding: 1rem;
 }
 
 .card {
     background: var(--surface-card);
-    border-radius: 12px;
-    padding: 2rem;
+    border-radius: 14px;
+    padding: 2.5rem;
     width: 100%;
-    max-width: 380px;
+    max-width: 400px;
     border: 1px solid var(--surface-border);
 }
 
+/* ─── Brand inside form card (desktop only) ─── */
 .brand {
     text-align: center;
     margin-bottom: 2rem;
@@ -29,17 +149,34 @@
 }
 
 .brandTitle {
-    font-weight: 700;
-    font-size: 20px;
-    color: var(--text-color);
-    margin-bottom: 4px;
+    font-size: 27px;
+    font-weight: 800;
+    color: #111111;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0;
+}
+
+.brandTitleSpan {
+    background: #1D9E75;
+    color: #ffffff;
+    padding: 0px 8px 3px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    line-height: 1.3;
 }
 
 .brandSub {
     color: var(--text-color-secondary);
-    font-size: 14px;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    margin: 0;
 }
 
+/* ─── Form ─── */
 .hint {
     background: var(--surface-ground);
     border-radius: 8px;
@@ -76,4 +213,48 @@
 
 .submitBtn {
     margin-top: 0.5rem;
+}
+
+/* ─── Mobile responsive ─── */
+@media (max-width: 768px) {
+    .page {
+        flex-direction: column;
+    }
+
+    .sidePanel {
+        flex: 0 0 auto;
+        padding: 2rem 1.5rem;
+    }
+
+    .sidePanelBrand {
+        font-size: 24px;
+        margin-bottom: 1rem;
+    }
+
+    .sidePanelTitle {
+        font-size: 17px;
+    }
+
+    .sidePanelSub {
+        display: block;
+        margin-bottom: 0;
+    }
+
+    /* Hide feature list on mobile */
+    .featureList {
+        display: none;
+    }
+
+    /* Hide brand from form card — panel already shows it */
+    /* .brand {
+        display: none;
+    } */
+
+    .panel {
+        flex: 1;
+    }
+
+    .card {
+        padding: 1.75rem;
+    }
 }

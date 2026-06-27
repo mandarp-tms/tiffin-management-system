@@ -20,9 +20,18 @@ const buildMonthOptions = () => {
     const now = new Date()
     for (let i = 0; i < 6; i++) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-        const value = d.toISOString().slice(0, 7)
-        const label = d.toLocaleString('en-IN', { month: 'long', year: 'numeric' })
-        options.push({ label, value, month: d.getMonth() + 1, year: d.getFullYear() })
+        const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+
+        const label = d.toLocaleString('en-IN', {
+            month: 'long',
+            year: 'numeric',
+        })
+        options.push({
+            label,
+            value,
+            month: d.getMonth() + 1,
+            year: d.getFullYear(),
+        })
     }
     return options
 }
