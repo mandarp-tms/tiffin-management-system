@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import clsx from 'clsx'
 import Sidebar from '../components/Sidebar'
 import Topbar from '../components/Topbar'
+import Breadcrumb from '../components/Breadcrumb'
 import styles from './MainLayout.module.css'
 
 const MainLayout = () => {
@@ -42,6 +43,7 @@ const MainLayout = () => {
                     isMobile={isMobile}
                 />
                 <main className={clsx(styles.main, isMobile && styles.mobile)}>
+                    <Breadcrumb />
                     <Outlet />
                 </main>
             </div>

@@ -1,4 +1,4 @@
-# 🍱 Tiffin Manager — Frontend
+# 🍱 Tiffinger — Frontend
 
 A daily tiffin tracking and billing web application built with **React JS + PrimeReact**.
 Supports a 3-level hierarchy: Super Admin → Tiffin Center → Customer.

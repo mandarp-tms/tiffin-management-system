@@ -36,45 +36,64 @@ const LoginPage = () => {
     return (
         <div className={styles.page}>
             <Toast ref={toast} />
-            <div className={styles.card}>
 
-                <div className={styles.brand}>
-                    <img src={logo} alt='Tiffin Manager' className={styles.brandLogo} />
-                    <h2 className={styles.brandTitle}>Tiffin Manager</h2>
-                    <p className={styles.brandSub}>Daily tiffin tracking & billing</p>
+            {/* LEFT: login form */}
+            <div className={styles.sidePanel}>
+                <div className={styles.sidePanelInner}>
+                    {/* <h2 className={styles.sidePanelBrand}>
+                        <span className={styles.sidePanelBrandSpan}>Tiffi</span>nger
+                    </h2> */}
+                    <h2 className={styles.sidePanelTitle}>Manage your tiffin business, effortlessly</h2>
+                    <p className={styles.sidePanelSub}>Track orders, manage customers, and grow your tiffin service — all from one place.</p>
+                    <ul className={styles.featureList}>
+                        <li><span className={styles.featureDot}>✓</span> Daily order tracking</li>
+                        <li><span className={styles.featureDot}>✓</span> Customer management</li>
+                        <li><span className={styles.featureDot}>✓</span> Delivery scheduling</li>
+                        <li><span className={styles.featureDot}>✓</span> Payment records</li>
+                    </ul>
                 </div>
+            </div>
 
-                <div className={styles.form}>
-                    <div className={`${styles.formGroup} p-fluid`}>
-                        <label className={styles.label}>Username</label>
-                        <InputText
-                            value={username}
-                            onChange={e => setUsername(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder='Enter your username'
-                            autoComplete='username'
+            {/* LEFT: login form */}
+            <div className={styles.panel}>
+                <div className={styles.card}>
+                    <div className={styles.brand}>
+                        <h2 className={styles.brandTitle}>
+                            <span className={styles.brandTitleSpan}>Tiffi</span>nger
+                        </h2>
+                        <p className={styles.brandSub}>Your tiffin, at your fingertips</p>
+                    </div>
+                    <div className={styles.form}>
+                        <div className={`${styles.formGroup} p-fluid`}>
+                            <label className={styles.label}>Username</label>
+                            <InputText
+                                value={username}
+                                onChange={e => setUsername(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                placeholder='Enter your username'
+                                autoComplete='username'
+                            />
+                        </div>
+                        <div className={`${styles.formGroup} p-fluid`}>
+                            <label className={styles.label}>Password</label>
+                            <Password
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                placeholder='Enter your password'
+                                feedback={false}
+                                toggleMask
+                            />
+                        </div>
+                        <Button
+                            label='Sign in'
+                            icon='pi pi-sign-in'
+                            loading={loading}
+                            onClick={handleLogin}
+                            className={styles.submitBtn}
                         />
                     </div>
-                    <div className={`${styles.formGroup} p-fluid`}>
-                        <label className={styles.label}>Password</label>
-                        <Password
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder='Enter your password'
-                            feedback={false}
-                            toggleMask
-                        />
-                    </div>
-                    <Button
-                        label='Sign in'
-                        icon='pi pi-sign-in'
-                        loading={loading}
-                        onClick={handleLogin}
-                        className={styles.submitBtn}
-                    />
                 </div>
-
             </div>
         </div>
     )

@@ -1,0 +1,11 @@
+.breadcrumb {
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--surface-border);
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-color);
+}
