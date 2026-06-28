@@ -138,7 +138,7 @@ const PaymentModal = ({ customer, centerId, onClose, onSuccess }) => {
                         </div>
 
                         {/* Already fully paid */}
-                        {balanceDue <= 0 && (
+                        {(balanceDue <= 0 && payStatus === 'paid') && (
                             <div className={styles.paidBanner}>
                                 ✅ {customer.name} has fully paid for {MONTH_LABEL}
                             </div>

@@ -502,7 +502,7 @@ const ReportsPage = () => {
                                     )}
 
                                     {/* Fully paid */}
-                                    {paymentInfo.balanceDue <= 0 && (
+                                    {(paymentInfo.balanceDue <= 0 && paymentInfo.status === 'paid') && (
                                         <div className={styles.paidBanner}>
                                             ✅ {selectedCustomer.name} has fully paid for {selectedMonth?.label}
                                         </div>
