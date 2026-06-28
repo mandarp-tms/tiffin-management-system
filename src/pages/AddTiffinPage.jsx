@@ -214,14 +214,14 @@ const AddTiffinPage = () => {
                     borderBottom: '1px solid var(--surface-border)',
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
-                    <span style={{ fontWeight: 600, fontSize: '14px' }}>Add tiffin entry</span>
+                    <span style={{ fontWeight: 600, fontSize: '14px' }}>Add Tiffin Entry</span>
                     {isRole(ROLES.CENTER) && (
                         <span style={{
                             background: '#E1F5EE', color: '#085041',
                             padding: '3px 10px', borderRadius: '20px',
                             fontSize: '11px', fontWeight: 500,
                         }}>
-                            Auto-approved
+                            Auto-Approved
                         </span>
                     )}
                 </div>
@@ -282,14 +282,14 @@ const AddTiffinPage = () => {
 
                     {/* Tiffin type */}
                     <div className='p-fluid'>
-                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>Tiffin type</label>
+                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>Tiffin Type</label>
                         <Dropdown value={type} options={TIFFIN_TYPES} onChange={e => setType(e.value)} />
                     </div>
 
                     {/* Chapati count */}
                     {type !== 'dalrice' && chapatiOptions?.length > 0 && (
                         <div className='p-fluid'>
-                            <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>Chapati count</label>
+                            <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>{type === 'bhakari' ? 'Bhakari Count' : 'Chapati Count'}</label>
                             <Dropdown
                                 value={chapatiCount}
                                 options={chapatiOptions}
@@ -300,7 +300,7 @@ const AddTiffinPage = () => {
 
                     {/* Note */}
                     <div className='p-fluid'>
-                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>Note (optional)</label>
+                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>Note (Optional)</label>
                         <input
                             type='text'
                             value={note}
@@ -327,14 +327,14 @@ const AddTiffinPage = () => {
                     }}>
                         <div>
                             <div style={{ fontSize: '12px', color: 'var(--text-color-secondary)', marginBottom: '4px' }}>
-                                Estimated amount
+                                Estimated Amount
                             </div>
                             <div style={{ fontSize: '26px', fontWeight: 700, color: '#0F6E56' }}>
                                 ₹{amount}
                             </div>
                             {!isRole(ROLES.CENTER) && (
                                 <div style={{ fontSize: '11px', color: 'var(--text-color-secondary)', marginTop: '2px' }}>
-                                    Subject to approval
+                                    Subject to Approval
                                 </div>
                             )}
                         </div>
@@ -349,7 +349,7 @@ const AddTiffinPage = () => {
                     {/* Actions */}
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
                         <Button
-                            label='No tiffin'
+                            label='No Tiffin'
                             icon='pi pi-times'
                             severity='secondary'
                             outlined

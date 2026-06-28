@@ -10,10 +10,10 @@ import { TYPE_LABELS } from '../utils/constants'
 import styles from './TiffinCentersPage.module.css'
 
 const PRICE_FIELDS = [
-    { key: 'full', label: 'Full tiffin', sub: '3 chapati default', hasChapati: true },
-    { key: 'half', label: 'Half tiffin', sub: '2 chapati default', hasChapati: true },
-    { key: 'chapati', label: 'Only chapati', sub: '2 chapati default', hasChapati: true },
-    { key: 'bhakari', label: 'Bhakari', sub: '2 chapati default', hasChapati: true },
+    { key: 'full', label: 'Full tiffin', sub: 'Chapati default', hasChapati: true },
+    { key: 'half', label: 'Half tiffin', sub: 'Chapati default', hasChapati: true },
+    { key: 'chapati', label: 'Only chapati', sub: 'Chapati default', hasChapati: true },
+    { key: 'bhakari', label: 'Bhakari', sub: 'Bhakri default', hasChapati: true },
     { key: 'dalrice', label: 'Dal rice', sub: 'Fixed price', hasChapati: false },
 ]
 
@@ -90,7 +90,7 @@ const PricingModal = ({ center, onClose }) => {
             />
 
             <div className={styles.modalInfoBanner}>
-                Each chapati below default reduces price by <strong>₹5</strong>
+                Each chapati below default reduces price by respective price per chapati.
             </div>
 
             {loading ? (
@@ -99,11 +99,12 @@ const PricingModal = ({ center, onClose }) => {
                 </div>
             ) : (
                 <div className={styles.pricingList}>
-                    {PRICE_FIELDS.map(field => (
-                        <div key={field.key} className={styles.pricingRow}>
+                    {PRICE_FIELDS.map(field => {
+                        const defaultChapati = `${field.hasChapati ? prices?.[field.key]?.defaultChapati + ' ' : ''}`
+                        return (<div key={field.key} className={styles.pricingRow}>
                             <div>
                                 <div className={styles.pricingLabel}>{field.label}</div>
-                                <div className={styles.pricingSub}>{field.sub}</div>
+                                <div className={styles.pricingSub}>{defaultChapati + field.sub}</div>
                             </div>
                             <div className={styles.pricingInput}>
                                 <span className={styles.rupeeSign}>₹</span>
@@ -116,8 +117,8 @@ const PricingModal = ({ center, onClose }) => {
                                     onChange={e => updateField(field.key, Number(e.target.value))}
                                 />
                             </div>
-                        </div>
-                    ))}
+                        </div>)
+                    })}
                 </div>
             )}
 

@@ -125,7 +125,7 @@ const DashboardPage = () => {
                                 <table className={styles.table}>
                                     <thead>
                                         <tr>
-                                            {['Date', 'Customer', 'Type', 'Chapati', 'Amount', 'Status'].map(h => (
+                                            {['Date', 'Customer', 'Shift', 'Type', 'Chapati', 'Amount', 'Status'].map(h => (
                                                 <th key={h} className={styles.th}>{h}</th>
                                             ))}
                                         </tr>
@@ -138,6 +138,9 @@ const DashboardPage = () => {
                                                 </td>
                                                 <td className={`${styles.td} ${styles.tdNoWrap}`}>
                                                     {t.user?.name || t.userName || '—'}
+                                                </td>
+                                                <td className={styles.td}>
+                                                    <StatusBadge status={t.shift || 'morning'} />
                                                 </td>
                                                 <td className={styles.td}>
                                                     <StatusBadge status={t.tiffinType} label={TYPE_LABELS[t.tiffinType]} />

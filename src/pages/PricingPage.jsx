@@ -7,10 +7,10 @@ import AppButton from '../components/AppButton'
 import styles from './PricingPage.module.css'
 
 const PRICE_FIELDS = [
-    { key: 'full', label: 'Full tiffin', sub: '3 chapati default', color: '#1D9E75', hasChapati: true },
-    { key: 'half', label: 'Half tiffin', sub: '2 chapati default', color: '#534AB7', hasChapati: true },
-    { key: 'chapati', label: 'Only chapati', sub: '2 chapati default', color: '#BA7517', hasChapati: true },
-    { key: 'bhakari', label: 'Bhakari', sub: '2 chapati default', color: '#185FA5', hasChapati: true },
+    { key: 'full', label: 'Full tiffin', sub: 'Chapati default', color: '#1D9E75', hasChapati: true },
+    { key: 'half', label: 'Half tiffin', sub: 'Chapati default', color: '#534AB7', hasChapati: true },
+    { key: 'chapati', label: 'Only chapati', sub: 'Chapati default', color: '#BA7517', hasChapati: true },
+    { key: 'bhakari', label: 'Bhakari', sub: 'Bhakri default', color: '#185FA5', hasChapati: true },
     { key: 'dalrice', label: 'Dal rice', sub: 'Fixed price', color: '#993C1D', hasChapati: false },
 ]
 
@@ -109,7 +109,7 @@ const PricingPage = () => {
             <div className={styles.infoBanner}>
                 <i className='pi pi-info-circle' style={{ marginTop: '1px', flexShrink: 0 }} />
                 <span>
-                    Base price is for default chapati count. Each chapati below default reduces price by <strong>₹5</strong>.
+                    Base price is for default chapati count. Each chapati below default reduces price by respective price per chapati.
                 </span>
             </div>
 
@@ -117,13 +117,14 @@ const PricingPage = () => {
             <div className={styles.priceList}>
                 {PRICE_FIELDS.map(field => {
                     const val = getValue(field.key)
+                    const defaultChapati = `${field.hasChapati ? prices?.[field.key]?.defaultChapati + ' ' : ''}`
                     return (
                         <div key={field.key} className={styles.priceRow}>
                             <div className={styles.priceLeft}>
                                 <AppIcon name='bag' size={20} color={field.color} />
                                 <div>
                                     <div className={styles.priceLabel}>{field.label}</div>
-                                    <div className={styles.priceSub}>{field.sub}</div>
+                                    <div className={styles.priceSub}>{defaultChapati + field.sub}</div>
                                 </div>
                             </div>
                             <div className={styles.priceInput}>
