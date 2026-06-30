@@ -10,9 +10,11 @@ export const addTiffin = async (payload) => {
     return res.data
 }
 
-export const getPendingTiffins = async (centerId) => {
-    const res = await apiClient.get('/approvals/pending', { params: { centerId } })
-    return res
+export const getPendingTiffins = async (centerId, { page = 1, limit = 10 } = {}) => {
+    const res = await apiClient.get('/approvals/pending', {
+        params: { centerId, page, limit },
+    })
+    return res.data
 }
 
 export const approveTiffin = async (id, reason = '') => {
