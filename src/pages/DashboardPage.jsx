@@ -2,33 +2,35 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import StatCard from '../components/StatCard'
 import StatusBadge from '../components/StatusBadge'
-import { getDashboard } from '../services/reportService'
-import { getAllTiffins } from '../services/tiffinService'
-import { TYPE_LABELS, ROLES } from '../utils/constants'
-import { formatDate } from '../utils/formatDate'
+import { getDashboard, getCustomerHistory, getCenterTypeBreakdown } from '../services/reportService'
+import { ROLES } from '../utils/constants'
+import CustomerHistoryChart from '../components/CustomerHistoryChart'
+import CenterTypeBreakdownChart from '../components/CenterTypeBreakdownChart'
 import styles from './DashboardPage.module.css'
 
 const getCurrentMonthLabel = () =>
     new Date().toLocaleString('en-IN', { month: 'long', year: 'numeric' })
 
 const getCurrentMonthParam = () =>
-    new Date().toISOString().slice(0, 7)   // "2026-06"
+    new Date().toISOString().slice(0, 7)
 
 const DashboardPage = () => {
     const { currentUser, isRole } = useAuth()
 
-    // Dashboard stats from API
     const [dashData, setDashData] = useState(null)
     const [dashLoading, setDashLoading] = useState(true)
 
-    // Recent entries from API
-    const [entries, setEntries] = useState([])
-    const [entriesLoading, setEntriesLoading] = useState(true)
+    // Customer chart data
+    const [historyData, setHistoryData] = useState(null)
+    const [historyLoading, setHistoryLoading] = useState(true)
+
+    // Center/Admin chart data
+    const [breakdownData, setBreakdownData] = useState(null)
+    const [breakdownLoading, setBreakdownLoading] = useState(true)
 
     const monthLabel = getCurrentMonthLabel()
     const monthParam = getCurrentMonthParam()
 
-    // Fetch dashboard stats
     useEffect(() => {
         if (!currentUser) return
         setDashLoading(true)
@@ -38,25 +40,26 @@ const DashboardPage = () => {
             .finally(() => setDashLoading(false))
     }, [currentUser, monthParam])
 
-    // Fetch recent entries — scoped by role
+    // Load customer history chart — customer role only
     useEffect(() => {
-        if (!currentUser) return
-        setEntriesLoading(true)
-
-        const filters = {
-            page: 1,
-            limit: 6,
-            ...(isRole(ROLES.USER) && { userId: currentUser.id }),
-            ...(isRole(ROLES.CENTER) && { centerId: currentUser.centerId }),
-        }
-
-        getAllTiffins(filters)
-            .then(data => setEntries(Array.isArray(data) ? data : []))
-            .catch(err => console.error('Entries fetch error:', err))
-            .finally(() => setEntriesLoading(false))
+        if (!currentUser || !isRole(ROLES.USER)) return
+        setHistoryLoading(true)
+        getCustomerHistory(6)
+            .then(data => setHistoryData(data))
+            .catch(err => console.error('History fetch error:', err))
+            .finally(() => setHistoryLoading(false))
     }, [currentUser])
 
-    // Build stat cards from API response
+    // Load type breakdown chart — center and admin only
+    useEffect(() => {
+        if (!currentUser || isRole(ROLES.USER)) return
+        setBreakdownLoading(true)
+        getCenterTypeBreakdown(currentUser.centerId, monthParam)
+            .then(data => setBreakdownData(data))
+            .catch(err => console.error('Breakdown fetch error:', err))
+            .finally(() => setBreakdownLoading(false))
+    }, [currentUser])
+
     const stats = !dashData ? [] : isRole(ROLES.ADMIN)
         ? [
             { title: `Total tiffins (${monthLabel})`, value: dashData.totalTiffins, subtitle: 'Approved entries', icon: 'pi pi-shopping-bag', color: '#1D9E75' },
@@ -76,15 +79,22 @@ const DashboardPage = () => {
                 { title: 'Pending approval', value: dashData.myPending, subtitle: 'By tiffin center', icon: 'pi pi-clock', color: '#BA7517' },
             ]
 
+    const columns = [
+        { header: 'Date', field: 'entryDate', noWrap: true, body: row => formatDate(row.entryDate) },
+        { header: 'Customer', field: 'userName', noWrap: true, body: row => row.user?.name || row.userName || '—' },
+        { header: 'Shift', field: 'shift', body: row => <StatusBadge status={row.shift || 'morning'} /> },
+        { header: 'Type', field: 'tiffinType', body: row => <StatusBadge status={row.tiffinType} label={TYPE_LABELS[row.tiffinType]} /> },
+        { header: 'Chapati', field: 'chapatiCount', align: 'center', body: row => row.chapatiCount || '—' },
+        { header: 'Amount', field: 'amount', align: 'right', body: row => row.amount ? `₹${row.amount}` : '—' },
+        { header: 'Status', field: 'status', body: row => <StatusBadge status={row.status} /> },
+    ]
+
     return (
         <div className={styles.page}>
 
-            {/* Stat cards */}
             <div className={styles.statsGrid}>
                 {dashLoading
-                    ? [1, 2, 3, 4].map(i => (
-                        <div key={i} className={styles.skeletonCard} />
-                    ))
+                    ? [1, 2, 3, 4].map(i => <div key={i} className={styles.skeletonCard} />)
                     : stats.map((s, i) => (
                         <StatCard key={i} title={s.title} value={s.value}
                             subtitle={s.subtitle} icon={s.icon} color={s.color} />
@@ -92,12 +102,9 @@ const DashboardPage = () => {
                 }
             </div>
 
-            {/* Tiffin center card — customers only */}
             {isRole(ROLES.USER) && dashData?.myCenter && (
                 <div className={styles.centerCard}>
-                    <div className={styles.centerAvatar}>
-                        {dashData.myCenter.avatar}
-                    </div>
+                    <div className={styles.centerAvatar}>{dashData.myCenter.avatar}</div>
                     <div className={styles.centerInfo}>
                         <div className={styles.centerLabel}>Your tiffin center</div>
                         <div className={styles.centerName}>{dashData.myCenter.name}</div>
@@ -109,59 +116,27 @@ const DashboardPage = () => {
                 </div>
             )}
 
+            {/* Customer history chart — customer role only */}
+            {isRole(ROLES.USER) && (
+                <CustomerHistoryChart data={historyData} loading={historyLoading} />
+            )}
+
+            {(isRole(ROLES.CENTER) || isRole(ROLES.ADMIN)) && (
+                <CenterTypeBreakdownChart data={breakdownData} loading={breakdownLoading} />
+            )}
             {/* Recent entries table */}
-            <div className={styles.tableCard}>
+            {/* <div className={styles.tableCard}>
                 <div className={styles.tableHead}>Recent entries</div>
-                <div className={styles.tableWrap}>
-                    {entriesLoading
-                        ? (
-                            <div className={styles.loadingRow}>Loading entries...</div>
-                        )
-                        : entries.length === 0
-                            ? (
-                                <div className={styles.emptyRow}>No entries yet this month</div>
-                            )
-                            : (
-                                <table className={styles.table}>
-                                    <thead>
-                                        <tr>
-                                            {['Date', 'Customer', 'Shift', 'Type', 'Chapati', 'Amount', 'Status'].map(h => (
-                                                <th key={h} className={styles.th}>{h}</th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {entries.map(t => (
-                                            <tr key={t.id} className={styles.tr}>
-                                                <td className={`${styles.td} ${styles.tdNoWrap}`}>
-                                                    {formatDate(t.entryDate)}
-                                                </td>
-                                                <td className={`${styles.td} ${styles.tdNoWrap}`}>
-                                                    {t.user?.name || t.userName || '—'}
-                                                </td>
-                                                <td className={styles.td}>
-                                                    <StatusBadge status={t.shift || 'morning'} />
-                                                </td>
-                                                <td className={styles.td}>
-                                                    <StatusBadge status={t.tiffinType} label={TYPE_LABELS[t.tiffinType]} />
-                                                </td>
-                                                <td className={`${styles.td} ${styles.tdCenter}`}>
-                                                    {t.chapatiCount || '—'}
-                                                </td>
-                                                <td className={`${styles.td} ${styles.tdAmount}`}>
-                                                    {t.amount ? `₹${t.amount}` : '—'}
-                                                </td>
-                                                <td className={styles.td}>
-                                                    <StatusBadge status={t.status} />
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )
-                    }
-                </div>
-            </div>
+                <AppDataTable
+                    columns={columns}
+                    data={entries}
+                    loading={entriesLoading}
+                    pageSize={6}
+                    emptyMessage="No entries yet this month"
+                    serverPagination={entriesPagination}
+                    onPageChange={(p) => setEntriesPage(p)}
+                />
+            </div> */}
 
         </div>
     )

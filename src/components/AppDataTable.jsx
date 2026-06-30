@@ -6,10 +6,23 @@ const AppDataTable = ({
     columns = [], data = [],
     emptyMessage = 'No records found.',
     pageSize = 10, loading = false,
+    // Server-side pagination (optional)
+    serverPagination = null,   // { page, total, totalPages }
+    onPageChange = null,       // (newPage) => void
 }) => {
-    const [page, setPage] = useState(1)
-    const totalPages = Math.ceil(data.length / pageSize)
-    const paginated = data.slice((page - 1) * pageSize, page * pageSize)
+    const [localPage, setLocalPage] = useState(1)
+
+    // Use server pagination if provided, else fall back to client-side
+    const isServer = !!serverPagination && !!onPageChange
+    const page = isServer ? serverPagination.page : localPage
+    const totalPages = isServer ? serverPagination.totalPages : Math.ceil(data.length / pageSize)
+    const total = isServer ? serverPagination.total : data.length
+    const paginated = isServer ? data : data.slice((page - 1) * pageSize, page * pageSize)
+
+    const setPage = (p) => {
+        if (isServer) onPageChange(p)
+        else setLocalPage(p)
+    }
 
     const getPageNumbers = () => {
         const pages = []
@@ -72,10 +85,10 @@ const AppDataTable = ({
             {totalPages > 1 && (
                 <div className={styles.paginator}>
                     <span className={styles.paginatorInfo}>
-                        Showing {Math.min((page - 1) * pageSize + 1, data.length)}–{Math.min(page * pageSize, data.length)} of {data.length}
+                        Showing {Math.min((page - 1) * pageSize + 1, total)}–{Math.min(page * pageSize, total)} of {total}
                     </span>
                     <div className={styles.paginatorPages}>
-                        <button className={styles.pageBtn} onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>‹</button>
+                        <button className={styles.pageBtn} onClick={() => setPage(page - 1)} disabled={page === 1}>‹</button>
                         {getPageNumbers().map((p, i) =>
                             p === '...'
                                 ? <span key={i} className={styles.ellipsis}>…</span>
@@ -85,7 +98,7 @@ const AppDataTable = ({
                                     onClick={() => setPage(p)}
                                 >{p}</button>
                         )}
-                        <button className={styles.pageBtn} onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>›</button>
+                        <button className={styles.pageBtn} onClick={() => setPage(page + 1)} disabled={page === totalPages}>›</button>
                     </div>
                 </div>
             )}

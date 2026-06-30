@@ -16,31 +16,41 @@ const ApprovalsPage = () => {
 
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
+    const [page, setPage] = useState(1)
+    const [pagination, setPagination] = useState(null)
 
     const centerId = currentUser?.centerId || 1
+    const PAGE_SIZE = 10
 
-    const fetchPending = useCallback(async () => {
+    const fetchPending = useCallback(async (pageNum = 1) => {
         setLoading(true)
         try {
-            const result = await getPendingTiffins(centerId)
-            // API returns array directly (res.data from service)
-            setData(Array.isArray(result) ? result : [])
+            const result = await getPendingTiffins(centerId, { page: pageNum, limit: PAGE_SIZE })
+
+            if (result?.data && result?.pagination) {
+                setData(result.data)
+                setPagination(result.pagination)
+            } else {
+                setData(Array.isArray(result) ? result : [])
+                setPagination(null)
+            }
         } catch (err) {
             console.error('Fetch pending error:', err)
             toast.current?.show({ severity: 'error', summary: 'Failed to load approvals', life: 3000 })
             setData([])
+            setPagination(null)
         } finally {
             setLoading(false)
         }
     }, [centerId])
 
-    useEffect(() => { fetchPending() }, [fetchPending])
+    useEffect(() => { fetchPending(page) }, [fetchPending, page])
 
     const handleApprove = async (id) => {
         try {
             await approveTiffin(id)
             toast.current.show({ severity: 'success', summary: 'Approved', life: 2000 })
-            fetchPending()
+            fetchPending(page)
         } catch (err) {
             toast.current.show({
                 severity: 'error',
@@ -55,7 +65,7 @@ const ApprovalsPage = () => {
         try {
             await rejectTiffin(id)
             toast.current.show({ severity: 'warn', summary: 'Rejected', life: 2000 })
-            fetchPending()
+            fetchPending(page)
         } catch (err) {
             toast.current.show({
                 severity: 'error',
@@ -66,6 +76,10 @@ const ApprovalsPage = () => {
         }
     }
 
+    const handlePageChange = (newPage) => {
+        setPage(newPage)
+    }
+
     const columns = [
         {
             header: 'Customer',
@@ -74,7 +88,7 @@ const ApprovalsPage = () => {
         },
         {
             header: 'Date',
-            body: row => formatDate(row.entryDate),   // ← entryDate not date
+            body: row => formatDate(row.entryDate),
             noWrap: true,
         },
         {
@@ -83,7 +97,7 @@ const ApprovalsPage = () => {
         },
         {
             header: 'Type',
-            body: row => <StatusBadge status={row.tiffinType} label={TYPE_LABELS[row.tiffinType]} />,  // ← tiffinType not type
+            body: row => <StatusBadge status={row.tiffinType} label={TYPE_LABELS[row.tiffinType]} />,
         },
         {
             header: 'Chapati',
@@ -129,14 +143,16 @@ const ApprovalsPage = () => {
             <div className={styles.card}>
                 <div className={styles.cardHead}>
                     <span>Pending approvals</span>
-                    <StatusBadge status='pending' label={`${data.length} pending`} />
+                    <StatusBadge status='pending' label={`${pagination?.total ?? data.length} pending`} />
                 </div>
                 <AppDataTable
                     columns={columns}
                     data={data}
                     loading={loading}
                     emptyMessage='All caught up! No pending approvals.'
-                    pageSize={10}
+                    pageSize={PAGE_SIZE}
+                    serverPagination={pagination}
+                    onPageChange={handlePageChange}
                 />
             </div>
         </div>
