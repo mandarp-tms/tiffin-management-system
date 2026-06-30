@@ -62,6 +62,9 @@ const PAYMENT_METHODS = [
 const ReportsPage = () => {
     const toast = useRef(null)
     const { currentUser, isRole } = useAuth()
+    const [reportPage, setReportPage] = useState(1)
+    const [reportPagination, setReportPagination] = useState(null)
+    const PAGE_SIZE = 10
 
     const centerId = currentUser?.centerId || 1
 
@@ -105,16 +108,24 @@ const ReportsPage = () => {
                 month,
                 userId: customerFilter !== 'all' ? customerFilter : undefined,
                 status: statusFilter !== 'all' ? statusFilter : undefined,
+                page: reportPage,
+                limit: PAGE_SIZE,
             })
-            setReportData(data)
+
+            if (data?.entries && data?.pagination) {
+                setReportData(data)
+                setReportPagination(data.pagination)
+            } else {
+                setReportData(data)
+                setReportPagination(null)
+            }
         } catch (err) {
             console.error('Billing report error:', err)
             toast.current?.show({ severity: 'error', summary: 'Failed to load report', life: 3000 })
         } finally {
             setReportLoading(false)
         }
-    }, [centerId, month, customerFilter, statusFilter])
-
+    }, [centerId, month, customerFilter, statusFilter, reportPage])
     useEffect(() => { fetchReport() }, [fetchReport])
 
     // ── Load payment info when customer selected ──────────
@@ -148,6 +159,7 @@ const ReportsPage = () => {
     // ── Customer change ────────────────────────────────────
     const handleCustomerChange = (val) => {
         setCustomerFilter(val)
+        setReportPage(1)
         setPayAmount('')
         setPayReference('')
         setPayNote('')
@@ -249,7 +261,7 @@ const ReportsPage = () => {
                         label='Month'
                         value={month}
                         options={MONTHS}
-                        onChange={e => setMonth(e.value)}
+                        onChange={e => { setMonth(e.value); setReportPage(1) }}
                     />
                 </div>
                 <div className={styles.filterItem}>
@@ -270,7 +282,7 @@ const ReportsPage = () => {
                     return (
                         <button
                             key={opt.value}
-                            onClick={() => setStatusFilter(opt.value)}
+                            onClick={() => { setStatusFilter(opt.value); setReportPage(1) }}
                             className={clsx(styles.statusTab, isActive && styles.active)}
                         >
                             {opt.label}
@@ -519,7 +531,7 @@ const ReportsPage = () => {
                 <div className={styles.tableHead}>
                     <span>Detailed log</span>
                     <span className={styles.tableCount}>
-                        {reportLoading ? '...' : `${tableData.length} entr${tableData.length === 1 ? 'y' : 'ies'}`}
+                        {reportLoading ? '...' : `${reportPagination?.total ?? tableData.length} entr${(reportPagination?.total ?? tableData.length) === 1 ? 'y' : 'ies'}`}
                     </span>
                 </div>
                 <AppDataTable
@@ -527,7 +539,9 @@ const ReportsPage = () => {
                     data={tableData}
                     loading={reportLoading}
                     emptyMessage='No entries found for selected filters.'
-                    pageSize={10}
+                    pageSize={PAGE_SIZE}
+                    serverPagination={reportPagination}
+                    onPageChange={(p) => setReportPage(p)}
                 />
             </div>
 

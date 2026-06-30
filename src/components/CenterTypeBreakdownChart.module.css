@@ -1,0 +1,153 @@
+.row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 1rem;
+}
+
+/* Mobile: stack vertically */
+@media (max-width: 768px) {
+    .row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.card {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    min-width: 0;
+    /* prevents flex/grid overflow on mobile */
+}
+
+.cardHeadRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 0.875rem;
+}
+
+.cardHead {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Toggle tabs */
+.tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface-ground);
+    border-radius: 8px;
+    padding: 2px;
+}
+
+.tab,
+.tabActive {
+    border: none;
+    background: transparent;
+    padding: 5px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--text-color-secondary);
+    font-weight: 400;
+    transition: all 0.15s;
+}
+
+.tabActive {
+    background: var(--surface-card);
+    color: var(--text-color);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.chartWrap {
+    position: relative;
+    width: 100%;
+    height: 220px;
+}
+
+.chartWrapSmall {
+    position: relative;
+    width: 100%;
+    height: 160px;
+}
+
+/* Mobile: shorter chart heights to fit viewport better */
+@media (max-width: 480px) {
+    .chartWrap {
+        height: 190px;
+    }
+
+    .chartWrapSmall {
+        height: 150px;
+    }
+
+    .cardHead {
+        font-size: 13px;
+    }
+
+    .tab,
+    .tabActive {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+}
+
+.typeLegend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 0.5rem;
+}
+
+.typeLegendItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.typeDot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.typeLabel {
+    flex: 1;
+    color: var(--text-color);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.typePct {
+    font-weight: 600;
+    color: var(--text-color-secondary);
+    flex-shrink: 0;
+}
+
+.skeleton {
+    height: 220px;
+    background: var(--surface-border);
+    border-radius: 8px;
+    animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}

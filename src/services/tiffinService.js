@@ -2,7 +2,7 @@ import apiClient from '../utils/apiClient'
 
 export const getAllTiffins = async (filters = {}) => {
     const res = await apiClient.get('/tiffin-entries', { params: filters })
-    return res.data   // ← array of entries
+    return res   // ← array of entries
 }
 
 export const addTiffin = async (payload) => {
@@ -12,7 +12,7 @@ export const addTiffin = async (payload) => {
 
 export const getPendingTiffins = async (centerId) => {
     const res = await apiClient.get('/approvals/pending', { params: { centerId } })
-    return res.data
+    return res
 }
 
 export const approveTiffin = async (id, reason = '') => {
