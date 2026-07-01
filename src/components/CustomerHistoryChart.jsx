@@ -44,6 +44,7 @@ const CustomerHistoryChart = ({ data, loading }) => {
 
     useEffect(() => {
         if (!data || loading) return
+        if (!historyCanvasRef.current) return   // only guard: canvas must be mounted
 
         // ── Combo chart: bars (count) + line (amount) ──
         if (historyChartRef.current) historyChartRef.current.destroy()
@@ -96,7 +97,7 @@ const CustomerHistoryChart = ({ data, loading }) => {
         // ── Doughnut: type breakdown ──
         if (typeChartRef.current) typeChartRef.current.destroy()
 
-        if (data.typeBreakdown?.length > 0) {
+        if (data.typeBreakdown?.length > 0 && typeCanvasRef.current) {
             const ctx2 = typeCanvasRef.current.getContext('2d')
             typeChartRef.current = new ChartJS(ctx2, {
                 type: 'doughnut',
@@ -114,6 +115,30 @@ const CustomerHistoryChart = ({ data, loading }) => {
                     maintainAspectRatio: false,
                     cutout: '65%',
                     plugins: { legend: { display: false } },
+                },
+            })
+        } else if (typeCanvasRef.current) {
+            // Empty doughnut — single grey slice as placeholder
+            const ctx2 = typeCanvasRef.current.getContext('2d')
+            typeChartRef.current = new ChartJS(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['No data yet'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: ['#e5e7eb'],
+                        borderColor: '#fcfcfb',
+                        borderWidth: 2,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false },  // no tooltip on placeholder
+                    },
                 },
             })
         }
@@ -143,15 +168,13 @@ const CustomerHistoryChart = ({ data, loading }) => {
         )
     }
 
-    if (!data || data.months.every(m => m.count === 0)) {
-        return null   // no chart if customer has no history yet
-    }
+    if (!data) return null   // only bail if data never arrived at all
 
     return (
         <div className={styles.row}>
 
             <div className={styles.card}>
-                <div className={styles.cardHead}>My Tiffin History(last 6 months)</div>
+                <div className={styles.cardHead}>My Tiffin History (last 6 months)</div>
                 <div className={styles.chartWrap}>
                     <canvas
                         ref={historyCanvasRef}
@@ -169,16 +192,16 @@ const CustomerHistoryChart = ({ data, loading }) => {
                 </div>
             </div>
 
-            {data.typeBreakdown?.length > 0 && (
-                <div className={styles.card}>
-                    <div className={styles.cardHead}>My Favourite Tiffin Type</div>
-                    <div className={styles.chartWrapSmall}>
-                        <canvas
-                            ref={typeCanvasRef}
-                            role="img"
-                            aria-label="Doughnut chart showing breakdown of tiffin types ordered"
-                        />
-                    </div>
+            <div className={styles.card}>
+                <div className={styles.cardHead}>My Favourite Tiffin Type</div>
+                <div className={styles.chartWrapSmall}>
+                    <canvas
+                        ref={typeCanvasRef}
+                        role="img"
+                        aria-label="Doughnut chart showing breakdown of tiffin types ordered"
+                    />
+                </div>
+                {data.typeBreakdown?.length > 0 ? (
                     <div className={styles.typeLegend}>
                         {data.typeBreakdown.slice(0, 4).map(t => (
                             <div key={t.type} className={styles.typeLegendItem}>
@@ -188,8 +211,10 @@ const CustomerHistoryChart = ({ data, loading }) => {
                             </div>
                         ))}
                     </div>
-                </div>
-            )}
+                ) : (
+                    <div className={styles.emptyLabel}>No tiffins ordered yet</div>
+                )}
+            </div>
 
         </div>
     )
