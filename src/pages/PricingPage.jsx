@@ -14,153 +14,158 @@ const PRICE_FIELDS = [
     { key: 'dalrice', label: 'Dal rice', sub: 'Fixed price', color: '#993C1D', hasChapati: false },
 ]
 
+// const PricingPage = () => {
+//     const { currentUser } = useAuth()
+//     const toast = useRef(null)
+
+//     const [prices, setPrices] = useState(null)
+//     const [loading, setLoading] = useState(true)
+//     const [saving, setSaving] = useState(false)
+//     const [saved, setSaved] = useState(false)
+
+//     // centerId — center role has it directly, admin needs to pass one
+//     // For center role: currentUser.centerId is set when they log in
+//     const centerId = currentUser?.centerId || 1
+
+//     // Load pricing on mount
+//     useEffect(() => {
+//         if (!centerId) return
+//         setLoading(true)
+//         getPricing(centerId)
+//             .then(data => setPrices(data))
+//             .catch(err => {
+//                 console.error('Load pricing error:', err)
+//                 toast.current?.show({ severity: 'error', summary: 'Failed to load pricing', life: 3000 })
+//             })
+//             .finally(() => setLoading(false))
+//     }, [centerId])
+
+//     const updateField = (key, field, value) => {
+//         setPrices(prev => ({
+//             ...prev,
+//             [key]: { ...prev[key], [field]: value },
+//         }))
+//     }
+
+//     const getValue = (key) => {
+//         const field = PRICE_FIELDS.find(f => f.key === key)
+//         return field?.hasChapati ? prices?.[key]?.basePrice : prices?.[key]?.basePrice
+//     }
+
+//     const handleSave = async () => {
+//         if (!prices) return
+//         setSaving(true)
+
+//         // Reshape from { full: { basePrice, defaultChapati } }
+//         // to the format backend PUT /pricing expects
+//         const shapedPrices = {}
+//         PRICE_FIELDS.forEach(f => {
+//             shapedPrices[f.key] = {
+//                 basePrice: prices[f.key]?.basePrice || 0,
+//                 defaultChapati: prices[f.key]?.defaultChapati || 0,
+//                 pricePerChapati: prices[f.key]?.pricePerChapati || 5,
+//                 isFixedPrice: !f.hasChapati,
+//             }
+//         })
+
+//         try {
+//             await updatePricing(centerId, shapedPrices)
+//             setSaved(true)
+//             toast.current.show({
+//                 severity: 'success',
+//                 summary: 'Pricing saved',
+//                 detail: 'New prices apply to all future entries',
+//                 life: 3000,
+//             })
+//             setTimeout(() => setSaved(false), 3000)
+//         } catch (err) {
+//             toast.current.show({
+//                 severity: 'error',
+//                 summary: 'Save failed',
+//                 detail: err?.message || 'Could not save pricing',
+//                 life: 3000,
+//             })
+//         } finally {
+//             setSaving(false)
+//         }
+//     }
+
+//     if (loading) {
+//         return (
+//             <div className={styles.page}>
+//                 <div className={styles.infoBanner}>
+//                     <i className='pi pi-spin pi-spinner' />
+//                     <span>Loading pricing...</span>
+//                 </div>
+//             </div>
+//         )
+//     }
+
+//     return (
+//         <div className={styles.page}>
+//             <Toast ref={toast} />
+
+//             {/* Info banner */}
+//             <div className={styles.infoBanner}>
+//                 <i className='pi pi-info-circle' style={{ marginTop: '1px', flexShrink: 0 }} />
+//                 <span>
+//                     Base price is for default chapati count. Each chapati below default reduces price by respective price per chapati.
+//                 </span>
+//             </div>
+
+//             {/* Price rows */}
+//             <div className={styles.priceList}>
+//                 {PRICE_FIELDS.map(field => {
+//                     const val = getValue(field.key)
+//                     const defaultChapati = `${field.hasChapati ? prices?.[field.key]?.defaultChapati + ' ' : ''}`
+//                     return (
+//                         <div key={field.key} className={styles.priceRow}>
+//                             <div className={styles.priceLeft}>
+//                                 <AppIcon name='bag' size={20} color={field.color} />
+//                                 <div>
+//                                     <div className={styles.priceLabel}>{field.label}</div>
+//                                     <div className={styles.priceSub}>{defaultChapati + field.sub}</div>
+//                                 </div>
+//                             </div>
+//                             <div className={styles.priceInput}>
+//                                 <span className={styles.rupeeSign}>₹</span>
+//                                 <input
+//                                     type='number'
+//                                     value={val ?? ''}
+//                                     min={0}
+//                                     max={999}
+//                                     onChange={e => updateField(
+//                                         field.key,
+//                                         'basePrice',
+//                                         Number(e.target.value)
+//                                     )}
+//                                     className={styles.input}
+//                                     style={{ color: field.color }}
+//                                 />
+//                             </div>
+//                         </div>
+//                     )
+//                 })}
+//             </div>
+
+//             {/* Save */}
+//             <div className={styles.saveRow}>
+//                 <AppButton
+//                     label={saved ? 'Saved ✓' : 'Save pricing'}
+//                     icon={<i className={saving ? 'pi pi-spin pi-spinner' : 'pi pi-save'} />}
+//                     variant={saved ? 'success' : 'primary'}
+//                     fullWidth
+//                     disabled={saving}
+//                     onClick={handleSave}
+//                 />
+//             </div>
+//         </div>
+//     )
+// }
+
 const PricingPage = () => {
-    const { currentUser } = useAuth()
-    const toast = useRef(null)
-
-    const [prices, setPrices] = useState(null)
-    const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
-    const [saved, setSaved] = useState(false)
-
-    // centerId — center role has it directly, admin needs to pass one
-    // For center role: currentUser.centerId is set when they log in
-    const centerId = currentUser?.centerId || 1
-
-    // Load pricing on mount
-    useEffect(() => {
-        if (!centerId) return
-        setLoading(true)
-        getPricing(centerId)
-            .then(data => setPrices(data))
-            .catch(err => {
-                console.error('Load pricing error:', err)
-                toast.current?.show({ severity: 'error', summary: 'Failed to load pricing', life: 3000 })
-            })
-            .finally(() => setLoading(false))
-    }, [centerId])
-
-    const updateField = (key, field, value) => {
-        setPrices(prev => ({
-            ...prev,
-            [key]: { ...prev[key], [field]: value },
-        }))
-    }
-
-    const getValue = (key) => {
-        const field = PRICE_FIELDS.find(f => f.key === key)
-        return field?.hasChapati ? prices?.[key]?.basePrice : prices?.[key]?.basePrice
-    }
-
-    const handleSave = async () => {
-        if (!prices) return
-        setSaving(true)
-
-        // Reshape from { full: { basePrice, defaultChapati } }
-        // to the format backend PUT /pricing expects
-        const shapedPrices = {}
-        PRICE_FIELDS.forEach(f => {
-            shapedPrices[f.key] = {
-                basePrice: prices[f.key]?.basePrice || 0,
-                defaultChapati: prices[f.key]?.defaultChapati || 0,
-                pricePerChapati: prices[f.key]?.pricePerChapati || 5,
-                isFixedPrice: !f.hasChapati,
-            }
-        })
-
-        try {
-            await updatePricing(centerId, shapedPrices)
-            setSaved(true)
-            toast.current.show({
-                severity: 'success',
-                summary: 'Pricing saved',
-                detail: 'New prices apply to all future entries',
-                life: 3000,
-            })
-            setTimeout(() => setSaved(false), 3000)
-        } catch (err) {
-            toast.current.show({
-                severity: 'error',
-                summary: 'Save failed',
-                detail: err?.message || 'Could not save pricing',
-                life: 3000,
-            })
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    if (loading) {
-        return (
-            <div className={styles.page}>
-                <div className={styles.infoBanner}>
-                    <i className='pi pi-spin pi-spinner' />
-                    <span>Loading pricing...</span>
-                </div>
-            </div>
-        )
-    }
-
     return (
-        <div className={styles.page}>
-            <Toast ref={toast} />
-
-            {/* Info banner */}
-            <div className={styles.infoBanner}>
-                <i className='pi pi-info-circle' style={{ marginTop: '1px', flexShrink: 0 }} />
-                <span>
-                    Base price is for default chapati count. Each chapati below default reduces price by respective price per chapati.
-                </span>
-            </div>
-
-            {/* Price rows */}
-            <div className={styles.priceList}>
-                {PRICE_FIELDS.map(field => {
-                    const val = getValue(field.key)
-                    const defaultChapati = `${field.hasChapati ? prices?.[field.key]?.defaultChapati + ' ' : ''}`
-                    return (
-                        <div key={field.key} className={styles.priceRow}>
-                            <div className={styles.priceLeft}>
-                                <AppIcon name='bag' size={20} color={field.color} />
-                                <div>
-                                    <div className={styles.priceLabel}>{field.label}</div>
-                                    <div className={styles.priceSub}>{defaultChapati + field.sub}</div>
-                                </div>
-                            </div>
-                            <div className={styles.priceInput}>
-                                <span className={styles.rupeeSign}>₹</span>
-                                <input
-                                    type='number'
-                                    value={val ?? ''}
-                                    min={0}
-                                    max={999}
-                                    onChange={e => updateField(
-                                        field.key,
-                                        'basePrice',
-                                        Number(e.target.value)
-                                    )}
-                                    className={styles.input}
-                                    style={{ color: field.color }}
-                                />
-                            </div>
-                        </div>
-                    )
-                })}
-            </div>
-
-            {/* Save */}
-            <div className={styles.saveRow}>
-                <AppButton
-                    label={saved ? 'Saved ✓' : 'Save pricing'}
-                    icon={<i className={saving ? 'pi pi-spin pi-spinner' : 'pi pi-save'} />}
-                    variant={saved ? 'success' : 'primary'}
-                    fullWidth
-                    disabled={saving}
-                    onClick={handleSave}
-                />
-            </div>
-        </div>
+        <h2>Comming soon !!</h2>
     )
 }
-
 export default PricingPage

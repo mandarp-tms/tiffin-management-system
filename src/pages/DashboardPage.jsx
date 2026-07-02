@@ -52,13 +52,25 @@ const DashboardPage = () => {
 
     // Load type breakdown chart — center and admin only
     useEffect(() => {
-        if (!currentUser || isRole(ROLES.USER)) return
+        if (!currentUser) return
+        if (isRole(ROLES.USER)) return
+
+        const centerId = isRole(ROLES.CENTER)
+            ? currentUser.id        // CENTER user's own id is the centerId
+            : null                  // ADMIN — adjust if needed later
+
+        if (!centerId) {
+            console.warn('No centerId resolved for user:', currentUser)
+            setBreakdownLoading(false)
+            return
+        }
+
         setBreakdownLoading(true)
-        getCenterTypeBreakdown(currentUser.centerId, monthParam)
+        getCenterTypeBreakdown(centerId, monthParam)
             .then(data => setBreakdownData(data))
             .catch(err => console.error('Breakdown fetch error:', err))
             .finally(() => setBreakdownLoading(false))
-    }, [currentUser])
+    }, [currentUser, monthParam])
 
     const stats = !dashData ? [] : isRole(ROLES.ADMIN)
         ? [
