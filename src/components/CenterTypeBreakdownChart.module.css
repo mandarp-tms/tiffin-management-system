@@ -4,7 +4,6 @@
     gap: 1rem;
 }
 
-/* Mobile: stack vertically */
 @media (max-width: 768px) {
     .row {
         grid-template-columns: 1fr;
@@ -17,7 +16,6 @@
     border-radius: 12px;
     padding: 1rem 1.25rem;
     min-width: 0;
-    /* prevents flex/grid overflow on mobile */
 }
 
 .cardHeadRow {
@@ -32,6 +30,7 @@
 .cardHead {
     font-weight: 600;
     font-size: 14px;
+    margin-bottom: 0.875rem;
 }
 
 /* Toggle tabs */
@@ -76,32 +75,58 @@
     height: 160px;
 }
 
-/* Mobile: shorter chart heights to fit viewport better */
-@media (max-width: 480px) {
-    .chartWrap {
-        height: 190px;
-    }
-
-    .chartWrapSmall {
-        height: 150px;
-    }
-
-    .cardHead {
-        font-size: 13px;
-    }
-
-    .tab,
-    .tabActive {
-        padding: 4px 10px;
-        font-size: 11px;
-    }
+.emptyLabel {
+    margin-top: 0.5rem;
+    font-size: 12px;
+    color: var(--text-color-secondary);
+    text-align: center;
 }
 
+/* Doughnut wrapper — needed for absolute center label */
+.doughnutWrap {
+    position: relative;
+    width: 100%;
+}
+
+/* Center label inside doughnut hole */
+.doughnutCenter {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    pointer-events: none;
+}
+
+.doughnutCenterDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.doughnutCenterLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+}
+
+.doughnutCenterPct {
+    font-size: 11px;
+    color: var(--text-color-secondary);
+    font-weight: 500;
+}
+
+/* Legend */
 .typeLegend {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
 }
 
 .typeLegendItem {
@@ -127,12 +152,23 @@
     white-space: nowrap;
 }
 
+.typeCount {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+    flex-shrink: 0;
+    min-width: 64px;
+    text-align: right;
+}
+
 .typePct {
     font-weight: 600;
     color: var(--text-color-secondary);
     flex-shrink: 0;
+    min-width: 36px;
+    text-align: right;
 }
 
+/* Skeleton */
 .skeleton {
     height: 220px;
     background: var(--surface-border);
@@ -149,5 +185,47 @@
 
     50% {
         opacity: 0.4;
+    }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .chartWrap {
+        height: 190px;
+    }
+
+    .chartWrapSmall {
+        height: 150px;
+    }
+
+    .cardHead {
+        font-size: 13px;
+    }
+
+    .tab,
+    .tabActive {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+
+    .doughnutCenterLabel {
+        font-size: 11px;
+    }
+
+    .doughnutCenterPct {
+        font-size: 10px;
+    }
+
+    .typeLegendItem {
+        font-size: 12px;
+    }
+
+    .typeCount {
+        min-width: 52px;
+        font-size: 11px;
+    }
+
+    .typePct {
+        min-width: 30px;
     }
 }

@@ -4,20 +4,31 @@ import {
     CategoryScale,
     LinearScale,
     BarElement,
+    BarController,
+    DoughnutController,
     ArcElement,
     Tooltip,
 } from 'chart.js'
-import { TYPE_LABELS } from '../utils/constants'
 import styles from './CenterTypeBreakdownChart.module.css'
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip)
+ChartJS.register(CategoryScale, LinearScale, BarElement, BarController, DoughnutController, ArcElement, Tooltip)
 
-const TYPE_COLORS = {
-    full: '#2a78d6',
-    half: '#1baf7a',
-    chapati: '#eda100',
-    bhakari: '#4a3aa7',
-    dalrice: '#eb6834',
+const PALETTE = [
+    '#2a78d6',
+    '#1baf7a',
+    '#eda100',
+    '#4a3aa7',
+    '#eb6834',
+    '#e84393',
+    '#00b4d8',
+    '#606c38',
+]
+
+const PLACEHOLDER_COLOR = '#e5e7eb'
+
+const getColor = (breakdown, type) => {
+    const idx = breakdown.findIndex(t => t.type === type)
+    return idx >= 0 ? PALETTE[idx % PALETTE.length] : '#898781'
 }
 
 const CenterTypeBreakdownChart = ({ data, loading }) => {
@@ -25,33 +36,47 @@ const CenterTypeBreakdownChart = ({ data, loading }) => {
     const doughnutCanvasRef = useRef(null)
     const barChartRef = useRef(null)
     const doughnutChartRef = useRef(null)
-    const [mode, setMode] = useState('count')   // 'count' | 'amount'
+    const [mode, setMode] = useState('count')
 
     useEffect(() => {
-        if (!data || loading || !data.breakdown?.length) return
+        if (!data || loading) return
+        if (!barCanvasRef.current || !doughnutCanvasRef.current) return
 
-        const labels = data.breakdown.map(t => TYPE_LABELS[t.type] || t.type)
-        const colors = data.breakdown.map(t => TYPE_COLORS[t.type] || '#898781')
+        const hasData = data.breakdown?.some(t => t.count > 0)
 
-        // ── Bar chart — toggleable count/amount ──
+        // ── Bar chart ──
         if (barChartRef.current) barChartRef.current.destroy()
         const ctx = barCanvasRef.current.getContext('2d')
+
         barChartRef.current = new ChartJS(ctx, {
             type: 'bar',
-            data: {
-                labels,
-                datasets: [{
-                    data: data.breakdown.map(t => mode === 'count' ? t.count : t.amount),
-                    backgroundColor: colors,
-                    borderRadius: 4,
-                    maxBarThickness: 22,
-                }],
-            },
+            data: hasData
+                ? {
+                    labels: data.breakdown.map(t => t.type),
+                    datasets: [{
+                        data: data.breakdown.map(t => mode === 'count' ? t.count : t.amount),
+                        backgroundColor: data.breakdown.map((_, i) => PALETTE[i % PALETTE.length]),
+                        borderRadius: 4,
+                        maxBarThickness: 22,
+                    }],
+                }
+                : {
+                    labels: data.breakdown.map(t => t.type),   // use actual types from pricing
+                    datasets: [{
+                        data: data.breakdown.map(() => 0),
+                        backgroundColor: PLACEHOLDER_COLOR,
+                        borderRadius: 4,
+                        maxBarThickness: 22,
+                    }],
+                },
             options: {
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: hasData },
+                },
                 scales: {
                     x: {
                         grid: { color: '#e1e0d9' },
@@ -60,16 +85,18 @@ const CenterTypeBreakdownChart = ({ data, loading }) => {
                             font: { size: window.innerWidth <= 480 ? 10 : 11 },
                             stepSize: 1,
                             precision: 0,
-                            maxTicksLimit: window.innerWidth <= 480 ? 4 : 8,   // ← fewer ticks on small screens
+                            maxTicksLimit: window.innerWidth <= 480 ? 4 : 8,
                             callback: v => {
                                 if (!Number.isInteger(v)) return null
                                 return mode === 'amount' ? '₹' + v : v
                             },
                         },
                         beginAtZero: true,
-                        suggestedMax: mode === 'count'
-                            ? Math.max(...data.breakdown.map(t => t.count), 1) + 1
-                            : undefined,
+                        suggestedMax: hasData
+                            ? mode === 'count'
+                                ? Math.max(...data.breakdown.map(t => t.count), 1) + 1
+                                : undefined
+                            : 5,
                     },
                     y: {
                         grid: { display: false },
@@ -79,25 +106,39 @@ const CenterTypeBreakdownChart = ({ data, loading }) => {
             },
         })
 
-        // ── Doughnut chart — favourite type by count, always ──
+        // ── Doughnut chart ──
         if (doughnutChartRef.current) doughnutChartRef.current.destroy()
         const ctx2 = doughnutCanvasRef.current.getContext('2d')
+
         doughnutChartRef.current = new ChartJS(ctx2, {
             type: 'doughnut',
-            data: {
-                labels,
-                datasets: [{
-                    data: data.breakdown.map(t => t.count),
-                    backgroundColor: colors,
-                    borderColor: '#fcfcfb',
-                    borderWidth: 2,
-                }],
-            },
+            data: hasData
+                ? {
+                    labels: data.breakdown.map(t => t.type),
+                    datasets: [{
+                        data: data.breakdown.map(t => t.count),
+                        backgroundColor: data.breakdown.map((_, i) => PALETTE[i % PALETTE.length]),
+                        borderColor: '#fcfcfb',
+                        borderWidth: 2,
+                    }],
+                }
+                : {
+                    labels: ['No data yet'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: [PLACEHOLDER_COLOR],
+                        borderColor: '#fcfcfb',
+                        borderWidth: 2,
+                    }],
+                },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 cutout: '65%',
-                plugins: { legend: { display: false } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: hasData },
+                },
             },
         })
 
@@ -106,6 +147,15 @@ const CenterTypeBreakdownChart = ({ data, loading }) => {
             doughnutChartRef.current?.destroy()
         }
     }, [data, loading, mode])
+
+    useEffect(() => {
+        const handleResize = () => {
+            barChartRef.current?.resize()
+            doughnutChartRef.current?.resize()
+        }
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
 
     if (loading) {
         return (
@@ -116,7 +166,10 @@ const CenterTypeBreakdownChart = ({ data, loading }) => {
         )
     }
 
-    if (!data || !data.breakdown?.length) return null
+    if (!data) return null
+
+    const hasData = data.breakdown?.some(t => t.count > 0)
+    const topType = hasData ? data.breakdown[0] : null
 
     return (
         <div className={styles.row}>
@@ -129,45 +182,56 @@ const CenterTypeBreakdownChart = ({ data, loading }) => {
                         <button
                             className={mode === 'count' ? styles.tabActive : styles.tab}
                             onClick={() => setMode('count')}
-                        >
-                            Count
-                        </button>
+                        >Count</button>
                         <button
                             className={mode === 'amount' ? styles.tabActive : styles.tab}
                             onClick={() => setMode('amount')}
-                        >
-                            Amount
-                        </button>
+                        >Amount</button>
                     </div>
                 </div>
                 <div className={styles.chartWrap}>
-                    <canvas
-                        ref={barCanvasRef}
-                        role="img"
-                        aria-label={`Horizontal bar chart showing tiffin type breakdown by ${mode}`}
-                    />
+                    <canvas ref={barCanvasRef} role="img" aria-label={`Bar chart showing tiffin type breakdown by ${mode}`} />
                 </div>
+                {!hasData && (
+                    <div className={styles.emptyLabel}>No tiffins recorded this month</div>
+                )}
             </div>
 
-            {/* Favourite type doughnut */}
+            {/* Doughnut chart */}
             <div className={styles.card}>
                 <div className={styles.cardHead}>Most Ordered Type</div>
-                <div className={styles.chartWrapSmall}>
-                    <canvas
-                        ref={doughnutCanvasRef}
-                        role="img"
-                        aria-label="Doughnut chart showing most ordered tiffin type this month"
-                    />
-                </div>
-                <div className={styles.typeLegend}>
-                    {data.breakdown.slice(0, 4).map(t => (
-                        <div key={t.type} className={styles.typeLegendItem}>
-                            <span className={styles.typeDot} style={{ background: TYPE_COLORS[t.type] || '#898781' }} />
-                            <span className={styles.typeLabel}>{TYPE_LABELS[t.type] || t.type}</span>
-                            <span className={styles.typePct}>{t.percentage}%</span>
+                <div className={styles.doughnutWrap}>
+                    <div className={styles.chartWrapSmall}>
+                        <canvas ref={doughnutCanvasRef} role="img" aria-label="Doughnut chart showing most ordered tiffin type" />
+                    </div>
+                    {topType && (
+                        <div className={styles.doughnutCenter}>
+                            <span
+                                className={styles.doughnutCenterDot}
+                                style={{ background: getColor(data.breakdown, topType.type) }}
+                            />
+                            <span className={styles.doughnutCenterLabel}>{topType.type}</span>
+                            <span className={styles.doughnutCenterPct}>{topType.percentage}%</span>
                         </div>
-                    ))}
+                    )}
                 </div>
+                {hasData ? (
+                    <div className={styles.typeLegend}>
+                        {data.breakdown.map(t => (
+                            <div key={t.type} className={styles.typeLegendItem}>
+                                <span
+                                    className={styles.typeDot}
+                                    style={{ background: getColor(data.breakdown, t.type) }}
+                                />
+                                <span className={styles.typeLabel}>{t.type}</span>
+                                <span className={styles.typeCount}>{t.count} tiffins</span>
+                                <span className={styles.typePct}>{t.percentage}%</span>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className={styles.emptyLabel}>No tiffins recorded this month</div>
+                )}
             </div>
 
         </div>
