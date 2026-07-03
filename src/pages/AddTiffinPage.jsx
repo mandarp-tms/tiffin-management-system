@@ -1,13 +1,14 @@
-import { useState, useRef, useEffect } from 'react'
-import { Dropdown } from 'primereact/dropdown'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Button } from 'primereact/button'
 import { Toast } from 'primereact/toast'
+import AppDropdown from '../components/AppDropdown'
+import AppInput from '../components/AppInput'
 import { useAuth } from '../context/AuthContext'
 import { addTiffin, markNoTiffin } from '../services/tiffinService'
 import { getPricing } from '../services/pricingService'
 import { getTiffinUsers } from '../services/userService'
-import { calculateAmount } from '../utils/calculateAmount'
-import { TIFFIN_TYPES, CHAPATI_OPTIONS, SHIFTS, ROLES } from '../utils/constants'
+import { SHIFTS, ROLES } from '../utils/constants'
+import AppDatePicker from '../components/AppDatePicker'
 
 const getDateOptions = () => {
     const today = new Date()
@@ -26,6 +27,32 @@ const getDateOptions = () => {
     ]
 }
 
+// Builds a descending dropdown list around the default, e.g. default=3 -> [3,2,1]
+const buildChapatiDropdownOptions = (defaultChapati) => {
+    const max = Math.max(defaultChapati, 1)
+    const opts = []
+    for (let i = max; i >= 1; i--) {
+        opts.push({ label: i === max ? `${i} (default)` : `${i}`, value: i })
+    }
+    return opts
+}
+
+// Mode is decided purely by isFixedPrice; whether the field shows at all is decided by defaultChapati
+const getChapatiConfig = (pricingEntry) => {
+    if (!pricingEntry) return { mode: 'none' }
+
+    const def = pricingEntry.defaultChapati
+    const hasField = def !== null && def !== undefined && def !== '' && def !== 0
+
+    if (!hasField) return { mode: 'none' }
+
+    if (pricingEntry.isFixedPrice === true) {
+        return { mode: 'input', default: def }
+    }
+
+    return { mode: 'dropdown', default: def, options: buildChapatiDropdownOptions(def) }
+}
+
 const AddTiffinPage = () => {
     const { currentUser, isRole } = useAuth()
     const toast = useRef(null)
@@ -36,8 +63,8 @@ const AddTiffinPage = () => {
     const [selectedUser, setSelectedUser] = useState(null)
     const [date, setDate] = useState(dateOptions[0].value)
     const [shift, setShift] = useState('morning')
-    const [type, setType] = useState('full')
-    const [chapatiCount, setChapatiCount] = useState(3)
+    const [type, setType] = useState(null)
+    const [chapatiCount, setChapatiCount] = useState(0)
     const [note, setNote] = useState('')
     const [amount, setAmount] = useState(0)
     const [submitting, setSubmitting] = useState(false)
@@ -59,7 +86,12 @@ const AddTiffinPage = () => {
                     getPricing(centerId),
                 ])
                 setCustomers(Array.isArray(customerData) ? customerData : [])
-                setPricing(pricingData)
+
+                const pricingMap = pricingData?.data || pricingData || {}
+                setPricing(pricingMap)
+
+                const firstType = Object.keys(pricingMap)[0] || null
+                setType(firstType)
             } catch (err) {
                 console.error('Load data error:', err)
                 toast.current?.show({ severity: 'error', summary: 'Failed to load data', life: 3000 })
@@ -77,28 +109,47 @@ const AddTiffinPage = () => {
         }
     }, [customers])
 
-    // Recalculate amount when type changes
+    // Build dropdown options for the tiffin type selector from pricing
+    const tiffinTypeOptions = useMemo(() => {
+        if (!pricing) return []
+        return Object.entries(pricing).map(([key, val]) => ({
+            label: val.name || key,
+            value: key,
+        }))
+    }, [pricing])
+
+    const chapatiConfig = useMemo(() => getChapatiConfig(pricing?.[type]), [pricing, type])
+
+    // Recalculate default chapati + amount when type changes
     useEffect(() => {
-        const chapOptions = CHAPATI_OPTIONS[type]
-        const defaultChap = chapOptions?.[0]?.value ?? 0
+        if (!pricing || !type) return
+        const config = getChapatiConfig(pricing[type])
+        const defaultChap = config.mode === 'none' ? 0 : config.default
         setChapatiCount(defaultChap)
-        if (pricing) {
-            setAmount(calculateAmountFromPricing(pricing, type, defaultChap))
-        }
+        setAmount(calculateAmountFromPricing(pricing, type, defaultChap))
     }, [type, pricing])
 
     // Recalculate amount when chapati count changes
     useEffect(() => {
-        if (pricing) {
+        if (pricing && type) {
             setAmount(calculateAmountFromPricing(pricing, type, chapatiCount))
         }
-    }, [chapatiCount, pricing])
+    }, [chapatiCount])
 
-    // Calculate from real pricing data (API shape)
     const calculateAmountFromPricing = (pricingData, tiffinType, chapati) => {
         const p = pricingData?.[tiffinType]
         if (!p) return 0
-        if (p.isFixedPrice) return parseFloat(p.basePrice)
+
+        const hasChapatiField = p.defaultChapati !== null && p.defaultChapati !== undefined
+            && p.defaultChapati !== '' && p.defaultChapati !== 0
+
+        // No chapati/bhakari concept at all — one flat price for the whole item (e.g. Dal Rice)
+        if (!hasChapatiField) return parseFloat(p.basePrice)
+
+        // Fixed per-unit price — multiply by however many the user selected/entered
+        if (p.isFixedPrice) return parseFloat(p.basePrice) * chapati
+
+        // Variable pricing — base price adjusted up/down from the default count
         const diff = (p.defaultChapati - chapati)
         const result = parseFloat(p.basePrice) - (diff * parseFloat(p.pricePerChapati || 5))
         return Math.max(0, result)
@@ -176,8 +227,6 @@ const AddTiffinPage = () => {
         }
     }
 
-    const chapatiOptions = CHAPATI_OPTIONS[type]
-
     if (dataLoading) {
         return (
             <div style={{ maxWidth: '480px' }}>
@@ -230,93 +279,76 @@ const AddTiffinPage = () => {
 
                     {/* Customer selector — center only */}
                     {isRole(ROLES.CENTER) && (
-                        <div className='p-fluid'>
-                            <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>
-                                Customer
-                            </label>
-                            <Dropdown
-                                value={selectedUser}
-                                options={userOptions}
-                                onChange={e => setSelectedUser(e.value)}
-                                placeholder='Select customer'
-                            />
-                        </div>
+                        <AppDropdown
+                            label='Customer'
+                            value={selectedUser}
+                            options={userOptions}
+                            onChange={e => setSelectedUser(e.value)}
+                            placeholder='Select customer'
+                        />
                     )}
 
                     {/* Date */}
-                    <div className='p-fluid'>
-                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>
-                            Date
-                        </label>
-                        {isRole(ROLES.USER)
-                            ? (
-                                <Dropdown
-                                    value={date}
-                                    options={dateOptions}
-                                    onChange={e => setDate(e.value)}
-                                />
-                            ) : (
-                                <input
-                                    type='date'
-                                    value={date}
-                                    onChange={e => setDate(e.target.value)}
-                                    style={{
-                                        width: '100%', height: '42px',
-                                        padding: '0 0.75rem',
-                                        border: '1px solid var(--surface-border)',
-                                        borderRadius: '8px',
-                                        fontSize: '14px', fontFamily: 'inherit',
-                                        background: 'var(--surface-card)',
-                                        color: 'var(--text-color)', outline: 'none',
-                                    }}
-                                />
-                            )
-                        }
-                    </div>
+                    {isRole(ROLES.USER)
+                        ? (
+                            <AppDropdown
+                                label='Date'
+                                value={date}
+                                options={dateOptions}
+                                onChange={e => setDate(e.value)}
+                            />
+                        ) : (
+                            <AppDatePicker
+                                label='Date'
+                                value={date}
+                                onChange={e => setDate(e.value)}
+                            />
+                        )
+                    }
 
                     {/* Shift */}
-                    <div className='p-fluid'>
-                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>Shift</label>
-                        <Dropdown value={shift} options={SHIFTS} onChange={e => setShift(e.value)} />
-                    </div>
+                    <AppDropdown
+                        label='Shift'
+                        value={shift}
+                        options={SHIFTS}
+                        onChange={e => setShift(e.value)}
+                    />
 
-                    {/* Tiffin type */}
-                    <div className='p-fluid'>
-                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>Tiffin Type</label>
-                        <Dropdown value={type} options={TIFFIN_TYPES} onChange={e => setType(e.value)} />
-                    </div>
+                    {/* Tiffin type — dynamic from pricing */}
+                    <AppDropdown
+                        label='Tiffin Type'
+                        value={type}
+                        options={tiffinTypeOptions}
+                        onChange={e => setType(e.value)}
+                    />
 
-                    {/* Chapati count */}
-                    {type !== 'dalrice' && chapatiOptions?.length > 0 && (
-                        <div className='p-fluid'>
-                            <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>{type === 'bhakari' ? 'Bhakari Count' : 'Chapati Count'}</label>
-                            <Dropdown
-                                value={chapatiCount}
-                                options={chapatiOptions}
-                                onChange={e => setChapatiCount(e.value)}
-                            />
-                        </div>
+                    {/* Chapati / Bhakari — dropdown or number input, based on isFixedPrice */}
+                    {chapatiConfig.mode === 'dropdown' && (
+                        <AppDropdown
+                            label={`${pricing?.[type]?.name} Count`}
+                            value={chapatiCount}
+                            options={chapatiConfig.options}
+                            onChange={e => setChapatiCount(e.value)}
+                        />
+                    )}
+
+                    {chapatiConfig.mode === 'input' && (
+                        <AppInput
+                            label={`${pricing?.[type]?.name} Count`}
+                            type='number'
+                            value={chapatiCount}
+                            onChange={e => setChapatiCount(Number(e.value) || 0)}
+                        />
                     )}
 
                     {/* Note */}
-                    <div className='p-fluid'>
-                        <label style={{ fontSize: '13px', marginBottom: '6px', display: 'block' }}>Note (Optional)</label>
-                        <input
-                            type='text'
-                            value={note}
-                            onChange={e => setNote(e.target.value)}
-                            placeholder='e.g. extra spicy, no onion'
-                            style={{
-                                width: '100%', height: '42px',
-                                padding: '0 0.75rem',
-                                border: '1px solid var(--surface-border)',
-                                borderRadius: '8px',
-                                fontSize: '14px', fontFamily: 'inherit',
-                                background: 'var(--surface-card)',
-                                color: 'var(--text-color)', outline: 'none',
-                            }}
-                        />
-                    </div>
+                    <AppInput
+                        label='Note (Optional)'
+                        type='text'
+                        value={note}
+                        onChange={e => setNote(e.value)}
+                        placeholder='e.g. extra spicy, no onion'
+                    />
 
                     {/* Amount preview */}
                     <div style={{
