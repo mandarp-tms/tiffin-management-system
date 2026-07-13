@@ -13,19 +13,24 @@ import PricingPage from './pages/PricingPage'
 import MyBillPage from './pages/MyBillPage'
 import UsersPage from './pages/UsersPage'
 import TiffinCentersPage from './pages/TiffinCentersPage'
+// import ModulePage from './pages/ModulePage'
+import ModuleFormPage from './pages/ModuleFormPage'
 
 const App = () => {
   const { currentUser } = useAuth()
 
   return (
     <Routes>
-      <Route path='/login' element={
-        currentUser ? <Navigate to='/dashboard' replace /> : <LoginPage />
-      } />
+      <Route
+        path='/login'
+        element={currentUser ? <Navigate to='/dashboard' replace /> : <LoginPage />}
+      />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path='/dashboard' element={<DashboardPage />} />
+
+          {/* Custom pages */}
           <Route path='/add-tiffin' element={<AddTiffinPage />} />
           <Route path='/approvals' element={<ApprovalsPage />} />
           <Route path='/reports' element={<ReportsPage />} />
@@ -33,10 +38,17 @@ const App = () => {
           <Route path='/my-bill' element={<MyBillPage />} />
           <Route path='/users' element={<UsersPage />} />
           <Route path='/tiffin-centers' element={<TiffinCentersPage />} />
+          {/* Dynamic module routes (e.g. /module/users, /module/tiffin-centers) */}
+          {/* <Route path='/module/:moduleId' element={<ModulePage />} /> */}
+          <Route path='/module/:moduleId/add' element={<ModuleFormPage mode='add' />} />
+          <Route path='/module/:moduleId/edit/:id' element={<ModuleFormPage mode='edit' />} />
         </Route>
       </Route>
 
-      <Route path='*' element={<Navigate to='/login' replace />} />
+      <Route
+        path='*'
+        element={<Navigate to={currentUser ? '/dashboard' : '/login'} replace />}
+      />
     </Routes>
   )
 }

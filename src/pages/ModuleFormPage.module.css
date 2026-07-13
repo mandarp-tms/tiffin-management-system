@@ -1,0 +1,40 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-width: 560px;
+}
+
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.title {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-color);
+}
+
+.sub {
+    font-size: 13px;
+    color: var(--text-color-secondary);
+}
+
+.card {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.cardBody {
+    padding: 1.25rem;
+}
+
+@media (max-width: 480px) {
+    .page {
+        max-width: 100%;
+    }
+}

@@ -1,11 +1,35 @@
 .breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 13px;
     margin-bottom: 1.25rem;
     padding-bottom: 0.75rem;
     border-bottom: 1px solid var(--surface-border);
 }
 
-.title {
-    font-size: 18px;
-    font-weight: 700;
+.item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.link {
+    color: var(--primary-color);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+.sep {
+    color: var(--text-color-secondary);
+}
+
+.current {
     color: var(--text-color);
+    font-weight: 600;
 }
