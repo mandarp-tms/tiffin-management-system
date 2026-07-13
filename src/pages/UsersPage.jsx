@@ -7,8 +7,9 @@ import { TYPE_LABELS, ROLES } from '../utils/constants'
 import StatusBadge from '../components/StatusBadge'
 import AppButton from '../components/AppButton'
 import PaymentModal from './PaymentModal'
-import { FaRupeeSign } from 'react-icons/fa'
+import { FaPlus, FaRupeeSign } from 'react-icons/fa'
 import styles from './UsersPage.module.css'
+import { useNavigate } from 'react-router-dom'
 
 const now = new Date()
 const CURRENT_MONTH = now.getMonth() + 1
@@ -16,6 +17,7 @@ const CURRENT_YEAR = now.getFullYear()
 const MONTH_LABEL = now.toLocaleString('en-IN', { month: 'long', year: 'numeric' })
 
 const UsersPage = () => {
+    const navigate = useNavigate()
     const { currentUser, isRole } = useAuth()
     const centerId = currentUser?.centerId || 1
     const [customers, setCustomers] = useState([])
@@ -79,10 +81,18 @@ const UsersPage = () => {
         <div className={styles.page}>
 
             <div className={styles.header}>
-                <div className={styles.title}>Customers</div>
                 <div className={styles.sub}>
                     {loading ? '...' : `${customerStats.length} active customers this month`}
                 </div>
+                {isRole(ROLES.CENTER) && (
+                    <AppButton
+                        label='Add customer'
+                        icon={<FaPlus size={12} />}
+                        variant='primary'
+                        size='sm'
+                        onClick={() => navigate('/module/customer/add')}
+                    />
+                )}
             </div>
 
             {loading ? (
