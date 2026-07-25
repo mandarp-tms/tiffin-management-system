@@ -33,3 +33,13 @@
     color: var(--text-color);
     font-weight: 600;
 }
+
+.ellipsis {
+    cursor: pointer;
+    color: var(--text-color-secondary);
+    padding: 0 2px;
+}
+
+.ellipsis:hover {
+    color: var(--primary-color);
+}

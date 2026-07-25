@@ -1,69 +1,59 @@
+import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { getModule } from '../config'
+import { getBreadcrumbTrail } from '../routes'
 import styles from './Breadcrumb.module.css'
 
-const STATIC_TITLES = {
-    '/dashboard': 'Dashboard',
-    '/add-tiffin': 'Add Tiffin',
-    '/approvals': 'Approvals',
-    '/reports': 'Reports',
-    '/pricing': 'Pricing',
-    '/my-bill': 'My Bill',
-    '/users': 'Customers',
-    '/tiffin-centers': 'Tiffin Centers',
-}
-
-// Returns [{ label, path? }] — last item has no path (current page)
-const getPageTrail = (pathname) => {
-    if (STATIC_TITLES[pathname]) {
-        return [{ label: STATIC_TITLES[pathname] }]
-    }
-
-    const moduleMatch = pathname.match(/^\/module\/([^/]+)(\/add|\/edit\/[^/]+)?$/)
-    if (!moduleMatch) return []
-
-    const [, moduleId, action] = moduleMatch
-    const config = getModule(moduleId)
-    if (!config) return []
-
-    if (!action) return [{ label: config.label }]
-
-    const schema = action === '/add' ? config.add : config.edit
-    const currentLabel = action === '/add'
-        ? (schema?.title || `Add ${config.label.slice(0, -1)}`)
-        : (schema?.title ? `Edit ${schema.title}` : `Edit ${config.label.slice(0, -1)}`)
-    const listPath = config.listPath || `/module/${moduleId}`
-    return [
-        { label: config.label, path: listPath },
-        { label: currentLabel },
-    ]
-}
+// How many crumbs to show before collapsing the middle.
+// e.g. maxVisible=4 → show first 1, collapse the rest into "...", show last 3.
+const MAX_VISIBLE = 4
+const TAIL_COUNT = 3   // how many trailing crumbs stay visible when collapsed
 
 const Breadcrumb = () => {
     const location = useLocation()
     const navigate = useNavigate()
-    const pageTrail = getPageTrail(location.pathname)
+    const trail = getBreadcrumbTrail(location.pathname)
+    const [expanded, setExpanded] = useState(false)
 
-    if (!pageTrail.length) return null
+    if (!trail.length) return null
 
-    // Prefix with Home unless we're already on the dashboard
-    const isDashboard = location.pathname === '/dashboard'
-    const trail = isDashboard ? pageTrail : [{ label: 'Home', path: '/dashboard' }, ...pageTrail]
+    const shouldCollapse = trail.length > MAX_VISIBLE && !expanded
+
+    // Split into head (always shown), hidden (collapsible middle), tail (always shown)
+    const head = shouldCollapse ? trail.slice(0, 1) : []
+    const hidden = shouldCollapse ? trail.slice(1, trail.length - TAIL_COUNT) : []
+    const tail = shouldCollapse ? trail.slice(trail.length - TAIL_COUNT) : trail
+
+    const renderCrumb = (item, i, isLast) => (
+        <span key={item.path || `current-${i}`} className={styles.item}>
+            {item.path ? (
+                <span className={styles.link} onClick={() => navigate(item.path)}>
+                    {item.label}
+                </span>
+            ) : (
+                <span className={styles.current}>{item.label}</span>
+            )}
+            {!isLast && <span className={styles.sep}>›</span>}
+        </span>
+    )
 
     return (
         <div className={styles.breadcrumb}>
-            {trail.map((item, i) => (
-                <span key={i} className={styles.item}>
-                    {item.path ? (
-                        <span className={styles.link} onClick={() => navigate(item.path)}>
-                            {item.label}
-                        </span>
-                    ) : (
-                        <span className={styles.current}>{item.label}</span>
-                    )}
-                    {i < trail.length - 1 && <span className={styles.sep}>›</span>}
+            {head.map((item, i) => renderCrumb(item, i, false))}
+
+            {shouldCollapse && hidden.length > 0 && (
+                <span className={styles.item}>
+                    <span
+                        className={styles.ellipsis}
+                        onClick={() => setExpanded(true)}
+                        title={hidden.map(h => h.label).join(' › ')}
+                    >
+                        …
+                    </span>
+                    <span className={styles.sep}>›</span>
                 </span>
-            ))}
+            )}
+
+            {tail.map((item, i) => renderCrumb(item, i, i === tail.length - 1))}
         </div>
     )
 }
