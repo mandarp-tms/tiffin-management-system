@@ -3,7 +3,7 @@ import {
     FaHome, FaPlus, FaCheck, FaReceipt, FaChartBar,
     FaUsers, FaTags, FaSignOutAlt, FaBars, FaTimes,
     FaRupeeSign, FaClock, FaShoppingBag, FaInfoCircle,
-    FaSave, FaCheckSquare
+    FaSave, FaCheckSquare, FaBell
 } from 'react-icons/fa'
 
 // Map name → component
@@ -24,6 +24,7 @@ const ICONS = {
     info: FaInfoCircle,
     save: FaSave,
     approvals: FaCheckSquare,
+    bell: FaBell,
 }
 
 const AppIcon = ({ name, size = 16, color, style = {} }) => {

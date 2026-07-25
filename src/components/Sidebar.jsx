@@ -2,21 +2,12 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import clsx from 'clsx'
 import { useAuth } from '../context/AuthContext'
-import { ROLES, ROLE_LABELS } from '../utils/constants'
+import { ROLE_LABELS } from '../utils/constants'
+import { ROUTES } from '../routes'
 import AppIcon from './AppIcon'
 import logo from '../assets/logo.png'
 import styles from './Sidebar.module.css'
 
-const allNavItems = [
-    { label: 'Dashboard', icon: 'home', path: '/dashboard', roles: ['admin', 'center', 'user'] },
-    { label: 'Add Tiffin', icon: 'plus', path: '/add-tiffin', roles: ['center', 'user'] },
-    { label: 'Approvals', icon: 'approvals', path: '/approvals', roles: ['center'] },
-    { label: 'My Bill', icon: 'receipt', path: '/my-bill', roles: ['user'] },
-    { label: 'Reports', icon: 'chart', path: '/reports', roles: ['admin', 'center'] },
-    { label: 'Tiffin Centers', icon: 'users', path: '/tiffin-centers', roles: ['admin'] },
-    { label: 'Customers', icon: 'users', path: '/users', roles: ['center'] },
-    { label: 'Pricing', icon: 'tag', path: '/pricing', roles: ['center'] },
-]
 
 const DRAWER_ITEMS = [
     { icon: 'pi pi-user', label: 'My Profile' },
@@ -30,7 +21,8 @@ const Sidebar = ({ onNavigate }) => {
     const navigate = useNavigate()
     const location = useLocation()
     const role = currentUser?.role
-    const navItems = allNavItems.filter(item => item.roles.includes(role))
+    const navItems = ROUTES.filter(r => r.showInNav && r.roles?.includes(role))
+
     const [profileOpen, setProfileOpen] = useState(false)
 
     const handleNav = (path) => { navigate(path); if (onNavigate) onNavigate() }

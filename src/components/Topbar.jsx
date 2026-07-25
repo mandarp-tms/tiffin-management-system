@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import clsx from 'clsx'
 import { useAuth } from '../context/AuthContext'
 import AppIcon from './AppIcon'
+import NotificationDropdown from './NotificationDropdown'
 import logo from '../assets/logo.png'
 import styles from './Topbar.module.css'
 
@@ -41,6 +42,7 @@ const Topbar = ({ onHamburgerClick, isMobile }) => {
             </div>
 
             <div className={styles.right}>
+                <NotificationDropdown />
                 <div className={styles.avatar}>{currentUser?.avatar}</div>
                 {!isMobile && <span className={styles.userName}>{currentUser?.name}</span>}
                 <button className={styles.logoutBtn} onClick={handleLogout} title='Logout'>

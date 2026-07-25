@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import apiClient from '../utils/apiClient'
+import { setupPushNotifications, getOrCreateDeviceId } from '../services/pushSetup'
+import { logoutDevice } from '../services/deviceService'
 
 const AuthContext = createContext(null)
 
@@ -13,6 +15,8 @@ export const AuthProvider = ({ children }) => {
         if (token && savedUser) {
             try {
                 setCurrentUser(JSON.parse(savedUser))
+                // Optionally setup push notifications on app reload if they are logged in
+                setupPushNotifications()
             } catch {
                 localStorage.removeItem('tms_user')
                 localStorage.removeItem('tms_token')
@@ -40,6 +44,10 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('tms_token', token)
             localStorage.setItem('tms_user', JSON.stringify(user))
             setCurrentUser(user)
+            
+            // Setup push notifications after successful login
+            setupPushNotifications()
+            
             return { success: true }
 
         } catch (err) {
@@ -52,12 +60,16 @@ export const AuthProvider = ({ children }) => {
     }
 
     const logout = () => {
+        // Logout device for push notifications
+        logoutDevice({ deviceId: getOrCreateDeviceId() }).catch(err => console.error('Error logging out device:', err))
+        
         localStorage.removeItem('tms_token')
         localStorage.removeItem('tms_user')
         setCurrentUser(null)
     }
 
     const isRole = (role) => currentUser?.role === role
+
 
     if (loading) return null
 
