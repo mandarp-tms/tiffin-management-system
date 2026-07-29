@@ -85,7 +85,7 @@ export const customerConfig = {
                 required: true,
                 // Always from API — never hardcoded
                 optionsFrom: 'api',
-                apiSource: '/tiffin-centers',
+                apiSource: '/mini-api/tiffin-centers',
                 apiLabelKey: 'name',
                 apiValueKey: 'id',
                 /*
