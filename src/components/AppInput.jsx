@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import clsx from 'clsx'
 import styles from './AppInput.module.css'
 
@@ -9,8 +9,12 @@ const AppInput = ({
     error, icon, ...rest
 }) => {
     const ref = useRef(null)
+    const [showPassword, setShowPassword] = useState(false)
 
     const handleChange = (e) => { onChange?.({ value: e.target.value }) }
+    
+    const isPassword = type === 'password'
+    const actualType = isPassword ? (showPassword ? 'text' : 'password') : type
 
     return (
         <div
@@ -29,7 +33,7 @@ const AppInput = ({
                 {icon && <span className={styles.icon}>{icon}</span>}
                 <input
                     ref={ref}
-                    type={type}
+                    type={actualType}
                     value={value ?? ''}
                     onChange={handleChange}
                     placeholder={placeholder}
@@ -37,6 +41,17 @@ const AppInput = ({
                     className={styles.input}
                     {...rest}
                 />
+                {isPassword && (
+                    <button
+                        type="button"
+                        className={styles.eyeIcon}
+                        onClick={() => setShowPassword(prev => !prev)}
+                        tabIndex="-1"
+                        title={showPassword ? "Hide password" : "Show password"}
+                    >
+                        <i className={showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'} />
+                    </button>
+                )}
             </div>
 
             {error && <span className={styles.errorText}>{error}</span>}

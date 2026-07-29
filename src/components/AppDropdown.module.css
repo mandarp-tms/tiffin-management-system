@@ -11,6 +11,7 @@
     margin-bottom: 6px;
     display: block;
     color: var(--text-color);
+    font-weight: 600;
 }
 
 .trigger {
@@ -39,6 +40,21 @@
 .trigger.disabled {
     background: var(--surface-ground);
     cursor: not-allowed;
+}
+
+.trigger.error {
+    border-color: var(--red-500, #e53935);
+}
+
+.trigger.error.open {
+    box-shadow: 0 0 0 2px var(--red-200, rgba(229, 57, 53, 0.2));
+}
+
+.errorText {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--red-500, #e53935);
 }
 
 .placeholder {

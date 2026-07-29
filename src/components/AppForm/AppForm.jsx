@@ -51,6 +51,7 @@ const AppForm = ({
                         onChange={e => setValue(field.key, e.value)}
                         placeholder={field.placeholder}
                         error={error}
+                        autoComplete={field.autoComplete}
                         {...extra}
                     />
                 )
@@ -64,6 +65,7 @@ const AppForm = ({
                         options={getFieldOptions(field)}
                         onChange={e => setValue(field.key, e.value)}
                         placeholder={field.placeholder || `Select ${field.label.toLowerCase()}`}
+                        error={error}
                         {...extra}
                     />
                 )

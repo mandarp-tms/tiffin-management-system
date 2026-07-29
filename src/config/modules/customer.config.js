@@ -38,9 +38,10 @@ export const customerConfig = {
                 label: 'Full name',
                 type: 'input',
                 inputType: 'text',
-                placeholder: 'e.g. Rahul Shah',
+                placeholder: 'Enter Full name',
                 required: true,
                 validation: { minLength: 2, maxLength: 100 },
+                autoComplete: 'off',
                 /* dummy backend value: "Rahul Shah" */
             },
             {
@@ -48,7 +49,7 @@ export const customerConfig = {
                 label: 'Username',
                 type: 'input',
                 inputType: 'text',
-                placeholder: 'e.g. rahul',
+                placeholder: 'Enter Username',
                 required: true,
                 validation: {
                     minLength: 3,
@@ -56,6 +57,7 @@ export const customerConfig = {
                     pattern: /^[a-z0-9_]+$/,
                     patternMessage: 'Only lowercase letters, numbers, underscores',
                 },
+                autoComplete: 'new-password',
                 /* dummy backend value: "rahul" */
             },
             {
@@ -63,9 +65,10 @@ export const customerConfig = {
                 label: 'Password',
                 type: 'input',
                 inputType: 'password',
-                placeholder: 'Minimum 6 characters',
+                placeholder: 'Enter Password',
                 required: true,
                 validation: { minLength: 6 },
+                autoComplete: 'new-password',
                 /* dummy backend value: hashed — never shown in response */
             },
             {
@@ -73,15 +76,17 @@ export const customerConfig = {
                 label: 'Phone number',
                 type: 'input',
                 inputType: 'tel',
-                placeholder: '+91 90000 00001',
+                placeholder: 'Enter 10 digit mobile number',
                 required: false,
+                validation: { pattern: /^\d{10}$/, patternMessage: 'Must be exactly 10 digits' },
+                autoComplete: 'off',
                 /* dummy backend value: "+91 90000 00001" */
             },
             {
                 key: 'centerId',
                 label: 'Tiffin center',
                 type: 'dropdown',
-                placeholder: 'Select center',
+                placeholder: 'Select Tiffin Center',
                 required: true,
                 // Always from API — never hardcoded
                 optionsFrom: 'api',

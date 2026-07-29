@@ -6,6 +6,7 @@ const AppDropdown = ({
     value, options = [], onChange,
     placeholder = 'Select...', label,
     disabled = false, fullWidth = true, style = {},
+    error,
 }) => {
     const [open, setOpen] = useState(false)
     const ref = useRef(null)
@@ -29,7 +30,12 @@ const AppDropdown = ({
 
             <div
                 onClick={() => !disabled && setOpen(o => !o)}
-                className={clsx(styles.trigger, open && styles.open, disabled && styles.disabled)}
+                className={clsx(
+                    styles.trigger, 
+                    open && styles.open, 
+                    disabled && styles.disabled,
+                    error && styles.error
+                )}
             >
                 <span className={clsx(styles.triggerText, !selected && styles.placeholder)}>
                     {selected?.label || placeholder}
@@ -51,6 +57,8 @@ const AppDropdown = ({
                     {options.length === 0 && <div className={styles.empty}>No options</div>}
                 </div>
             )}
+
+            {error && <span className={styles.errorText}>{error}</span>}
         </div>
     )
 }
