@@ -7,7 +7,7 @@ import MainLayout from './layouts/MainLayout'
 
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
-import AddTiffinPage from './pages/AddTiffinPage'
+import MyTiffinsPage from './pages/MyTiffinsPage'
 import ApprovalsPage from './pages/ApprovalsPage'
 import ReportsPage from './pages/ReportsPage'
 import PricingPage from './pages/PricingPage'
@@ -63,7 +63,7 @@ const App = () => {
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path={PATHS.DASHBOARD}      element={<DashboardPage />} />
-          <Route path={PATHS.ADD_TIFFIN}     element={<AddTiffinPage />} />
+          <Route path={PATHS.MY_TIFFINS}     element={<MyTiffinsPage />} />
           <Route path={PATHS.APPROVALS}      element={<ApprovalsPage />} />
           <Route path={PATHS.REPORTS}        element={<ReportsPage />} />
           <Route path={PATHS.PRICING}        element={<PricingPage />} />

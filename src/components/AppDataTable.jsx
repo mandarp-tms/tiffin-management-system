@@ -6,6 +6,7 @@ const AppDataTable = ({
     columns = [], data = [],
     emptyMessage = 'No records found.',
     pageSize = 10, loading = false,
+    renderMobileCard = null,
     // Server-side pagination (optional)
     serverPagination = null,   // { page, total, totalPages }
     onPageChange = null,       // (newPage) => void
@@ -62,18 +63,27 @@ const AppDataTable = ({
                             <tr><td colSpan={columns.length} className={styles.empty}>{emptyMessage}</td></tr>
                         )}
                         {!loading && paginated.map((row, rIdx) => (
-                            <tr key={row.id || rIdx} className={styles.tr}>
+                            <tr key={row.id || rIdx} className={clsx(styles.tr, renderMobileCard && styles.hasCustomMobile)}>
+                                {renderMobileCard && (
+                                    <td colSpan={columns.length} className={styles.mobileCustomCell}>
+                                        {renderMobileCard(row, rIdx)}
+                                    </td>
+                                )}
                                 {columns.map((col, cIdx) => (
                                     <td
                                         key={cIdx}
                                         className={clsx(
                                             styles.td,
+                                            renderMobileCard && styles.desktopCell,
                                             col.align === 'right' && styles.right,
                                             col.align === 'center' && styles.center,
                                         )}
                                         style={{ whiteSpace: col.noWrap ? 'nowrap' : 'normal' }}
+                                        data-label={col.header}
                                     >
-                                        {col.body ? col.body(row, rIdx) : row[col.field]}
+                                        <span className={styles.cellContent}>
+                                            {col.body ? col.body(row, rIdx) : row[col.field]}
+                                        </span>
                                     </td>
                                 ))}
                             </tr>

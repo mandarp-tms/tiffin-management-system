@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../utils/apiClient';
 
 export const useMiniApiOptions = (endpoint) => {
   const [options, setOptions] = useState([]);
@@ -13,12 +13,11 @@ export const useMiniApiOptions = (endpoint) => {
     const fetchOptions = async () => {
       try {
         setLoading(true);
-        // Ensure axios uses the base URL correctly - we can use an absolute path for relative API 
-        // assuming vite sets up a proxy or we use an environment variable. 
-        // Here we'll use a relative path assuming typical axios setup or just the path specified in the report
-        const response = await axios.get(`/api/v1/mini-api/${endpoint}`);
+        // Use apiClient so that tokens are attached and response is normalized
+        const response = await apiClient.get(`/mini-api/${endpoint}`);
         
-        const data = response.data.data;
+        // apiClient response interceptor returns the body directly: { success, data, ... }
+        const data = response.data || response;
         
         // Format options for the AppDropdown component
         const formattedOptions = data.map(item => ({

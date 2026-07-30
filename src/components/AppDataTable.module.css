@@ -62,6 +62,81 @@
     font-size: 13px;
 }
 
+@media (max-width: 768px) {
+    .table, .table tbody, .table tr, .table td {
+        display: block;
+        width: 100%;
+    }
+    
+    .table thead {
+        display: none;
+    }
+    
+    .tr {
+        margin-bottom: 16px;
+        border: 1px solid var(--surface-border);
+        border-radius: 8px;
+        background: var(--surface-card);
+        padding: 4px 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    
+    .td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        text-align: right !important;
+        border-bottom: 1px solid var(--surface-ground);
+    }
+    
+    .td:last-child {
+        border-bottom: none;
+    }
+    
+    .td::before {
+        content: attr(data-label);
+        font-weight: 500;
+        color: var(--text-color-secondary);
+        margin-right: 16px;
+        text-align: left;
+        flex-shrink: 0;
+    }
+
+    .cellContent {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        text-align: right;
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* Custom Mobile Card Support */
+    .tr.hasCustomMobile {
+        padding: 0;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .mobileCustomCell {
+        display: block;
+        padding: 0;
+        border: none;
+    }
+
+    .desktopCell {
+        display: none !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .mobileCustomCell {
+        display: none !important;
+    }
+}
+
 /* Paginator */
 .paginator {
     display: flex;

@@ -12,6 +12,7 @@ import { TYPE_LABELS, ROLES } from '../utils/constants'
 import { formatDate } from '../utils/formatDate'
 import { useAuth } from '../context/AuthContext'
 import { FaRupeeSign, FaTimes } from 'react-icons/fa'
+import TiffinMobileCard from '../components/TiffinMobileCard/TiffinMobileCard'
 import styles from './ReportsPage.module.css'
 
 // Build last 6 months dynamically
@@ -542,6 +543,7 @@ const ReportsPage = () => {
                     pageSize={PAGE_SIZE}
                     serverPagination={reportPagination}
                     onPageChange={(p) => setReportPage(p)}
+                    renderMobileCard={(row) => <TiffinMobileCard row={row} />}
                 />
             </div>
 
