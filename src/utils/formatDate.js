@@ -1,6 +1,6 @@
 export const formatDate = (dateStr) => {
     const d = new Date(dateStr)
-    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')
 }
 
 export const toInputDate = (dateStr) => {

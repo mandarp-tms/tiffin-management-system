@@ -18,7 +18,19 @@ const ModuleFormPage = ({ mode = 'add' }) => {
 
     const [loading, setLoading] = useState(false)
     const [initialValues, setInitialValues] = useState({})
+    const [formValues, setFormValues] = useState({})
     const [fetchingRecord, setFetchingRecord] = useState(mode === 'edit')
+    const [customData, setCustomData] = useState(null)
+    const [fetchingCustomData, setFetchingCustomData] = useState(!!schema?.fetchCustomData)
+
+    useEffect(() => {
+        if (!schema?.fetchCustomData) return
+        setFetchingCustomData(true)
+        schema.fetchCustomData({ currentUser, mode, id })
+            .then(data => setCustomData(data))
+            .catch(err => console.error('Failed to fetch custom data:', err))
+            .finally(() => setFetchingCustomData(false))
+    }, [schema, currentUser, mode, id])
 
     const listPath = config?.listPath || `/module/${moduleId}`
 
@@ -26,7 +38,10 @@ const ModuleFormPage = ({ mode = 'add' }) => {
         if (mode !== 'edit' || !id || !config) return
         setFetchingRecord(true)
         apiClient.get(`${config.endpoint}/${id}`)
-            .then(res => setInitialValues(res.data || {}))
+            .then(res => {
+                setInitialValues(res.data || {})
+                setFormValues(res.data || {})
+            })
             .catch(err => {
                 console.error('Fetch record error:', err)
                 toast.current?.show({ severity: 'error', summary: 'Could not load record', life: 3000 })
@@ -81,7 +96,7 @@ const ModuleFormPage = ({ mode = 'add' }) => {
         }
     }
 
-    if (fetchingRecord) {
+    if (fetchingRecord || fetchingCustomData) {
         return (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-color-secondary)', fontSize: '13px' }}>
                 <i className='pi pi-spin pi-spinner' style={{ fontSize: '20px', display: 'block', marginBottom: '8px' }} />
@@ -109,6 +124,9 @@ const ModuleFormPage = ({ mode = 'add' }) => {
                         onSubmit={handleSubmit}
                         onCancel={() => navigate(listPath)}
                         loading={loading}
+                        onValuesChange={setFormValues}
+                        renderFooter={schema.renderFooter ? (helpers) => schema.renderFooter({ ...helpers, values: formValues, currentUser, customData }) : undefined}
+                        fieldProps={schema.getFieldProps ? schema.getFieldProps({ values: formValues, currentUser, customData }) : {}}
                     />
                 </div>
             </div>

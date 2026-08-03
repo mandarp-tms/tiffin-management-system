@@ -11,6 +11,7 @@
     margin-bottom: 6px;
     display: block;
     color: var(--text-color);
+    font-weight: 600;
 }
 
 .trigger {

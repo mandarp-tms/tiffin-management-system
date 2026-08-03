@@ -1,0 +1,99 @@
+.card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    margin-bottom: 16px;
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    background: var(--surface-card);
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.cell {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+.customer {
+    grid-column: 1 / 2;
+    grid-row: 1;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.status {
+    grid-column: 2 / 3;
+    grid-row: 1;
+    justify-self: end;
+}
+
+.date {
+    grid-column: 1 / 2;
+    grid-row: 2;
+    font-weight: 600;
+}
+
+.shift {
+    grid-column: 2 / 3;
+    grid-row: 2;
+    justify-self: end;
+    transform: scale(1.05);
+    transform-origin: right center;
+}
+
+.type {
+    grid-column: 1 / 2;
+    grid-row: 3;
+}
+
+.chapati {
+    grid-column: 2 / 3;
+    grid-row: 3;
+    justify-self: end;
+    font-weight: 600;
+}
+
+.amount {
+    grid-column: 1 / 3;
+    grid-row: 4;
+    background: var(--surface-ground);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 4px;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.actions {
+    grid-column: 1 / 3;
+    grid-row: 5;
+    border-top: 1px dashed var(--surface-border);
+    padding-top: 12px;
+    margin-top: 4px;
+    justify-content: flex-end;
+}
+
+/* Compact layout for Customer Login */
+.noCustomer .date {
+    grid-row: 1;
+}
+
+.noCustomer .type {
+    grid-row: 2;
+}
+
+.noCustomer .chapati {
+    grid-row: 2;
+}
+
+.noCustomer .amount {
+    grid-row: 3;
+}
+
+.noCustomer .actions {
+    grid-row: 4;
+}

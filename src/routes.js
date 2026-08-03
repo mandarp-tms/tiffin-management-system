@@ -7,7 +7,8 @@ import { MODULE_REGISTRY } from './config'
 export const PATHS = {
     LOGIN: '/login',
     DASHBOARD: '/dashboard',
-    ADD_TIFFIN: '/add-tiffin',
+    ADD_TIFFIN: '/module/tiffinEntry/add',
+    MY_TIFFINS: '/my-tiffins',
     APPROVALS: '/approvals',
     REPORTS: '/reports',
     PRICING: '/pricing',
@@ -51,6 +52,14 @@ export const ROUTES = [
         label: 'Add Tiffin',
         icon: 'plus',
         roles: ['center', 'user'],
+        parent: PATHS.DASHBOARD,
+        showInNav: true,
+    },
+    {
+        path: PATHS.MY_TIFFINS,
+        label: 'My Tiffins',
+        icon: 'list', // Re-using an existing icon like 'approvals' or standard 'list' if it exists. Actually 'approvals' looks like a list.
+        roles: ['admin', 'center', 'user'],
         parent: PATHS.DASHBOARD,
         showInNav: true,
     },

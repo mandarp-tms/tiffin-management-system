@@ -5,6 +5,7 @@ import AppRadio from '../AppRadio'
 import AppButton from '../AppButton'
 import styles from './AppForm.module.css'
 import { useFormState } from '../../hooks/useFormState'
+import { useEffect } from 'react'
 
 const AppForm = ({
     schema,
@@ -14,6 +15,8 @@ const AppForm = ({
     loading = false,
     submitLabel,
     cancelLabel,
+    onValuesChange,
+    renderFooter,
     // Optional: override for fields that have dynamic constraints
     // e.g. AddTiffinPage passes minDate / maxDate per-field
     fieldProps = {},
@@ -23,6 +26,10 @@ const AppForm = ({
         setValue, validate, reset,
         getFieldOptions, isFieldVisible,
     } = useFormState(schema, initialValues)
+
+    useEffect(() => {
+        onValuesChange?.(values)
+    }, [values, onValuesChange])
 
     const handleSubmit = async () => {
         if (!validate()) return
@@ -35,10 +42,10 @@ const AppForm = ({
     }
 
     const renderField = (field) => {
-        if (!isFieldVisible(field)) return null
+        const extra = fieldProps[field.key] || {}
+        if (!isFieldVisible(field) || extra.hidden) return null
 
         const error = touched[field.key] ? errors[field.key] : null
-        const extra = fieldProps[field.key] || {}
 
         switch (field.type) {
             case 'input':
@@ -51,6 +58,7 @@ const AppForm = ({
                         onChange={e => setValue(field.key, e.value)}
                         placeholder={field.placeholder}
                         error={error}
+                        autoComplete={field.autoComplete}
                         {...extra}
                     />
                 )
@@ -64,6 +72,7 @@ const AppForm = ({
                         options={getFieldOptions(field)}
                         onChange={e => setValue(field.key, e.value)}
                         placeholder={field.placeholder || `Select ${field.label.toLowerCase()}`}
+                        error={error}
                         {...extra}
                     />
                 )
@@ -106,22 +115,26 @@ const AppForm = ({
                 </div>
             ))}
 
-            <div className={styles.actions}>
-                {onCancel && (
+            {renderFooter ? (
+                renderFooter({ values, handleSubmit, handleCancel, loading })
+            ) : (
+                <div className={styles.actions}>
+                    {onCancel && (
+                        <AppButton
+                            label={cancelLabel || schema.cancelLabel || 'Cancel'}
+                            variant='secondary'
+                            onClick={handleCancel}
+                            disabled={loading}
+                        />
+                    )}
                     <AppButton
-                        label={cancelLabel || schema.cancelLabel || 'Cancel'}
-                        variant='secondary'
-                        onClick={handleCancel}
-                        disabled={loading}
+                        label={submitLabel || schema.submitLabel || 'Submit'}
+                        variant='primary'
+                        loading={loading}
+                        onClick={handleSubmit}
                     />
-                )}
-                <AppButton
-                    label={submitLabel || schema.submitLabel || 'Submit'}
-                    variant='primary'
-                    loading={loading}
-                    onClick={handleSubmit}
-                />
-            </div>
+                </div>
+            )}
         </div>
     )
 }

@@ -1,5 +1,5 @@
 import { customerConfig } from './modules/customer.config'
-// import { tiffinEntryConfig }  from './modules/tiffinEntry.config'
+import { tiffinEntryConfig }  from './modules/tiffinEntry.config.jsx'
 // import { pricingConfig }      from './modules/pricing.config'
 // import { paymentConfig }      from './modules/payment.config'
 // import { tiffinCenterConfig } from './modules/tiffinCenter.config'
@@ -7,8 +7,8 @@ import { customerConfig } from './modules/customer.config'
 
 // Registry — keyed by module id
 export const MODULE_REGISTRY = {
-    customer: customerConfig,
-    //   tiffinEntry:   tiffinEntryConfig,
+    customer:      customerConfig,
+    tiffinEntry:   tiffinEntryConfig,
     //   pricing:       pricingConfig,
     //   payment:       paymentConfig,
     //   tiffinCenter:  tiffinCenterConfig,

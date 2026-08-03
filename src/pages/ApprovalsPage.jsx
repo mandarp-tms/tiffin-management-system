@@ -8,6 +8,7 @@ import StatusBadge from '../components/StatusBadge'
 import { getPendingTiffins, approveTiffin, rejectTiffin } from '../services/tiffinService'
 import { TYPE_LABELS } from '../utils/constants'
 import { formatDate } from '../utils/formatDate'
+import TiffinMobileCard from '../components/TiffinMobileCard/TiffinMobileCard'
 import styles from './ApprovalsPage.module.css'
 
 const ApprovalsPage = () => {
@@ -153,6 +154,29 @@ const ApprovalsPage = () => {
                     pageSize={PAGE_SIZE}
                     serverPagination={pagination}
                     onPageChange={handlePageChange}
+                    renderMobileCard={(row) => (
+                        <TiffinMobileCard
+                            row={row}
+                            actions={
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <AppButton
+                                        label='Approve'
+                                        icon={<FaCheck />}
+                                        variant='success'
+                                        size='sm'
+                                        onClick={() => handleApprove(row.id)}
+                                    />
+                                    <AppButton
+                                        label='Reject'
+                                        icon={<FaTimes />}
+                                        variant='danger'
+                                        size='sm'
+                                        onClick={() => handleReject(row.id)}
+                                    />
+                                </div>
+                            }
+                        />
+                    )}
                 />
             </div>
         </div>
