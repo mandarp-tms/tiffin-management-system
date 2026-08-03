@@ -128,8 +128,9 @@ const MyTiffinsPage = () => {
                     icon={<FaEdit />}
                     variant='text'
                     size='sm'
+                    disabled={true}
                     onClick={() => handleEdit(row.id)}
-                    title='Edit Entry'
+                    title='Edit temporarily disabled'
                 />
             )
         }
@@ -208,6 +209,8 @@ const MyTiffinsPage = () => {
                                     icon={<FaEdit />}
                                     variant='secondary'
                                     size='sm'
+                                    disabled={true}
+                                    title='Edit temporarily disabled'
                                     onClick={() => navigate(`/module/tiffinEntry/edit/${row.id}`)}
                                 />
                             } 

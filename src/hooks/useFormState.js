@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import apiClient from '../utils/apiClient'
 
-export const useFormState = (schema, initialValues = {}) => {
+export const useFormState = (schema, initialValues = {}, fieldProps = {}) => {
     // Build initial state from schema defaults + passed values
     const buildInitial = () => {
         const state = {}
         schema.fields.forEach(f => {
-            state[f.key] = initialValues[f.key] ?? f.defaultValue ?? ''
+            const extra = fieldProps[f.key] || {}
+            state[f.key] = initialValues[f.key] ?? extra.defaultValue ?? f.defaultValue ?? ''
         })
         return state
     }
@@ -38,7 +39,10 @@ export const useFormState = (schema, initialValues = {}) => {
     }, [])
 
     const setValue = (key, val) => {
-        setValues(prev => ({ ...prev, [key]: val }))
+        setValues(prev => {
+            const next = { ...prev, [key]: val }
+            return next
+        })
         setTouched(prev => ({ ...prev, [key]: true }))
         // Clear error when user types
         setErrors(prev => ({ ...prev, [key]: null }))
@@ -48,6 +52,10 @@ export const useFormState = (schema, initialValues = {}) => {
         const newErrors = {}
         schema.fields.forEach(f => {
             const val = values[f.key]
+            const extra = fieldProps[f.key] || {}
+
+            // Skip validation for hidden fields (from fieldProps)
+            if (extra.hidden) return
 
             // Skip validation for hidden fields (dependsOn not met)
             if (f.dependsOn) {

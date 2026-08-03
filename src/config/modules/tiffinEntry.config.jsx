@@ -47,6 +47,29 @@ const fetchCustomData = async ({ currentUser }) => {
     return pricingMap
 }
 
+const getCustomerDateOptions = () => {
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    
+    const formatValue = (d) => {
+        const y = d.getFullYear()
+        const m = String(d.getMonth() + 1).padStart(2, '0')
+        const day = String(d.getDate()).padStart(2, '0')
+        return `${y}-${m}-${day}`
+    }
+    
+    const label = (d, offset) => {
+        const day = d.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })
+        return offset === 0 ? `Today — ${day}` : `Tomorrow — ${day}`
+    }
+    
+    return [
+        { label: label(today, 0), value: formatValue(today) },
+        { label: label(tomorrow, 1), value: formatValue(tomorrow) }
+    ]
+}
+
 const getFieldProps = ({ values, customData, currentUser }) => {
     const pricing = customData || {}
     const tiffinTypes = Object.entries(pricing).map(([key, val]) => ({
@@ -55,17 +78,24 @@ const getFieldProps = ({ values, customData, currentUser }) => {
     }))
 
     const chapatiConfig = getChapatiConfig(pricing[values.type])
+    const isCustomer = currentUser?.role === 'user'
 
     return {
         userId: {
-            hidden: currentUser?.role === 'user'
+            hidden: isCustomer,
+            defaultValue: isCustomer ? currentUser?.id : undefined,
         },
+        date: isCustomer ? {
+            type: 'dropdown',
+            options: getCustomerDateOptions(),
+        } : {},
         type: {
             options: tiffinTypes
         },
         chapatiCount: {
             hidden: chapatiConfig.mode === 'none',
-            type: chapatiConfig.mode === 'input' ? 'number' : undefined, // Override AppInput type to number if input mode
+            componentType: chapatiConfig.mode === 'input' ? 'input' : 'dropdown',
+            type: chapatiConfig.mode === 'input' ? 'number' : undefined,
             options: chapatiConfig.mode === 'dropdown' ? chapatiConfig.options : [],
             label: pricing[values.type]?.name ? `${pricing[values.type].name} Count` : 'Chapati Count',
         }
@@ -133,6 +163,16 @@ const renderFooter = ({ values, handleSubmit, loading, customData, currentUser }
     )
 }
 
+const handleValuesChange = (newVals, prevVals, { setValue, customData }) => {
+    // When tiffin type changes, automatically set the chapatiCount to its default
+    if (newVals.type !== prevVals.type) {
+        const pricingEntry = customData?.[newVals.type]
+        if (pricingEntry && pricingEntry.defaultChapati !== undefined) {
+            setValue('chapatiCount', pricingEntry.defaultChapati)
+        }
+    }
+}
+
 export const tiffinEntryConfig = {
     id: 'tiffinEntry',
     label: 'Tiffin Entries',
@@ -168,6 +208,7 @@ export const tiffinEntryConfig = {
         fetchCustomData,
         getFieldProps,
         renderFooter,
+        onValuesChange: handleValuesChange,
         fields: [
             {
                 key: 'userId',
@@ -193,7 +234,7 @@ export const tiffinEntryConfig = {
                 required: true,
                 options: [
                     { label: 'Morning', value: 'morning' },
-                    { label: 'Evening', value: 'evening' },
+                    { label: 'Night', value: 'night' },
                 ]
             },
             {
@@ -226,6 +267,7 @@ export const tiffinEntryConfig = {
         fetchCustomData,
         getFieldProps,
         renderFooter,
+        onValuesChange: handleValuesChange,
         fields: [
             {
                 key: 'userId',
@@ -251,7 +293,7 @@ export const tiffinEntryConfig = {
                 required: true,
                 options: [
                     { label: 'Morning', value: 'morning' },
-                    { label: 'Evening', value: 'evening' },
+                    { label: 'Night', value: 'night' },
                 ]
             },
             {

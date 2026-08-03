@@ -124,7 +124,12 @@ const ModuleFormPage = ({ mode = 'add' }) => {
                         onSubmit={handleSubmit}
                         onCancel={() => navigate(listPath)}
                         loading={loading}
-                        onValuesChange={setFormValues}
+                        onValuesChange={(newVals, prevVals, helpers) => {
+                            setFormValues(newVals)
+                            if (schema.onValuesChange) {
+                                schema.onValuesChange(newVals, prevVals, { ...helpers, customData, currentUser })
+                            }
+                        }}
                         renderFooter={schema.renderFooter ? (helpers) => schema.renderFooter({ ...helpers, values: formValues, currentUser, customData }) : undefined}
                         fieldProps={schema.getFieldProps ? schema.getFieldProps({ values: formValues, currentUser, customData }) : {}}
                     />
