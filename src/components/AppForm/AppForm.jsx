@@ -5,7 +5,7 @@ import AppRadio from '../AppRadio'
 import AppButton from '../AppButton'
 import styles from './AppForm.module.css'
 import { useFormState } from '../../hooks/useFormState'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 const AppForm = ({
     schema,
@@ -25,10 +25,14 @@ const AppForm = ({
         values, errors, touched,
         setValue, validate, reset,
         getFieldOptions, isFieldVisible,
-    } = useFormState(schema, initialValues)
+    } = useFormState(schema, initialValues, fieldProps)
 
+    const prevValuesRef = useRef(values)
     useEffect(() => {
-        onValuesChange?.(values)
+        if (prevValuesRef.current !== values) {
+            onValuesChange?.(values, prevValuesRef.current, { setValue })
+            prevValuesRef.current = values
+        }
     }, [values, onValuesChange])
 
     const handleSubmit = async () => {
@@ -46,17 +50,20 @@ const AppForm = ({
         if (!isFieldVisible(field) || extra.hidden) return null
 
         const error = touched[field.key] ? errors[field.key] : null
+        const effectiveType = extra.componentType || extra.type || field.type
+        const effectiveLabel = extra.label || field.label
+        const effectivePlaceholder = extra.placeholder || field.placeholder
 
-        switch (field.type) {
+        switch (effectiveType) {
             case 'input':
                 return (
                     <AppInput
                         key={field.key}
-                        label={field.label}
+                        label={effectiveLabel}
                         type={field.inputType || 'text'}
                         value={values[field.key]}
                         onChange={e => setValue(field.key, e.value)}
-                        placeholder={field.placeholder}
+                        placeholder={effectivePlaceholder}
                         error={error}
                         autoComplete={field.autoComplete}
                         {...extra}
@@ -67,11 +74,11 @@ const AppForm = ({
                 return (
                     <AppDropdown
                         key={field.key}
-                        label={field.label}
+                        label={effectiveLabel}
                         value={values[field.key]}
                         options={getFieldOptions(field)}
                         onChange={e => setValue(field.key, e.value)}
-                        placeholder={field.placeholder || `Select ${field.label.toLowerCase()}`}
+                        placeholder={effectivePlaceholder || `Select ${effectiveLabel.toLowerCase()}`}
                         error={error}
                         {...extra}
                     />
@@ -81,7 +88,7 @@ const AppForm = ({
                 return (
                     <AppDatePicker
                         key={field.key}
-                        label={field.label}
+                        label={effectiveLabel}
                         value={values[field.key]}
                         onChange={e => setValue(field.key, e.value)}
                         {...extra}
@@ -92,7 +99,7 @@ const AppForm = ({
                 return (
                     <AppRadio
                         key={field.key}
-                        label={field.label}
+                        label={effectiveLabel}
                         value={values[field.key]}
                         options={field.options || []}
                         onChange={e => setValue(field.key, e.value)}
