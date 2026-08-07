@@ -128,9 +128,9 @@ const MyTiffinsPage = () => {
                     icon={<FaEdit />}
                     variant='text'
                     size='sm'
-                    disabled={true}
+                    disabled={isCustomer && row.status !== 'pending'}
                     onClick={() => handleEdit(row.id)}
-                    title='Edit temporarily disabled'
+                    title={isCustomer && row.status !== 'pending' ? 'Cannot edit processed tiffins' : 'Edit entry'}
                 />
             )
         }
@@ -209,8 +209,8 @@ const MyTiffinsPage = () => {
                                     icon={<FaEdit />}
                                     variant='secondary'
                                     size='sm'
-                                    disabled={true}
-                                    title='Edit temporarily disabled'
+                                    disabled={isCustomer && row.status !== 'pending'}
+                                    title={isCustomer && row.status !== 'pending' ? 'Cannot edit processed tiffins' : 'Edit entry'}
                                     onClick={() => navigate(`/module/tiffinEntry/edit/${row.id}`)}
                                 />
                             } 

@@ -143,7 +143,7 @@ export const ROUTES = [
         getLabel: ({ moduleId }) => {
             const cfg = MODULE_REGISTRY[moduleId]
             const title = cfg?.edit?.title
-            return title ? `Edit ${title}` : `Edit ${cfg?.label?.slice(0, -1) || 'Item'}`
+            return title || `Edit ${cfg?.label?.slice(0, -1) || 'Item'}`
         },
         getParent: ({ moduleId }) => {
             const cfg = MODULE_REGISTRY[moduleId]
