@@ -1,0 +1,146 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-bottom: 2rem;
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+}
+
+.filterItem {
+    width: 200px;
+}
+
+.tableCard {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px -5px rgba(0,0,0,0.05);
+}
+
+.tableHead {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--surface-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-color);
+}
+
+.tableCount {
+    background: var(--surface-hover);
+    color: var(--text-color-secondary);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Mobile responsive specific styling */
+@media screen and (max-width: 768px) {
+    .filterItem {
+        width: 100%;
+    }
+}
+
+.mobileCard {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 6px 0;
+}
+
+.mobileCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mobileMonth {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-color);
+}
+
+.mobileCardGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    background: var(--surface-ground);
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.mobileCardItem {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mobileCardLabel {
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--text-color-secondary);
+    letter-spacing: 0.5px;
+}
+
+.mobileCardValue {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    max-width: 700px;
+}
+
+.statCard {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.statCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px -4px rgba(0,0,0,0.05);
+}
+
+.statLabel {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+    margin-bottom: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.statValue {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.statValue.green {
+    color: #10ac84;
+}

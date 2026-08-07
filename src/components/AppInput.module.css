@@ -25,6 +25,7 @@
     background: var(--surface-card);
     transition: border-color 0.15s, box-shadow 0.15s;
     width: 100%;
+    position: relative;
 }
 
 .trigger:focus-within {
@@ -94,4 +95,17 @@
 
 .eyeIcon:hover {
     color: var(--text-color);
+}
+
+.input[type="month"].isEmpty {
+    color: transparent;
+}
+
+.monthPlaceholder {
+    position: absolute;
+    left: 0.75rem;
+    pointer-events: none;
+    color: var(--text-color-secondary);
+    font-size: 14px;
+    font-weight: 500;
 }

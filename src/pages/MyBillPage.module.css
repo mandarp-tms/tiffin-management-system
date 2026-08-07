@@ -1,57 +1,188 @@
 .page {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+.headerRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.balanceCard {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5253 100%);
+    border-radius: 16px;
+    padding: 2.5rem 1.5rem;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 25px -5px rgba(238, 82, 83, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Add a subtle shine effect */
+.balanceCard::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(to bottom right, rgba(255,255,255,0) 40%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 60%);
+    transform: rotate(45deg);
+    animation: shine 6s infinite linear;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
+}
+
+.balanceLabel {
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.9;
+    margin-bottom: 8px;
+}
+
+.balanceValue {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+/* If no balance */
+.balanceCard.settled {
+    background: linear-gradient(135deg, #10ac84 0%, #1dd1a1 100%);
+    box-shadow: 0 10px 25px -5px rgba(29, 209, 161, 0.4);
 }
 
 .statsGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
 }
 
 .statCard {
     background: var(--surface-card);
     border: 1px solid var(--surface-border);
-    border-radius: 12px;
-    padding: 1.25rem;
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.statCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px -5px rgba(0,0,0,0.05);
 }
 
 .statLabel {
     font-size: 13px;
     color: var(--text-color-secondary);
     margin-bottom: 6px;
+    font-weight: 500;
 }
 
 .statValue {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
 }
 
-.statSub {
-    font-size: 12px;
-    color: var(--text-color-secondary);
-    margin-top: 4px;
+.statValue.green {
+    color: #10ac84;
 }
 
-.tableCard {
+.txSection {
+    margin-top: 1rem;
+}
+
+.txHeader {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.txList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.txCard {
     background: var(--surface-card);
     border: 1px solid var(--surface-border);
     border-radius: 12px;
-    overflow: hidden;
-}
-
-.tableHead {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--surface-border);
+    padding: 1.25rem 1.25rem;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    font-weight: 600;
-    font-size: 14px;
+    align-items: center;
+    transition: background 0.2s;
 }
 
-.amount {
+.txCard:hover {
+    background: var(--surface-hover);
+}
+
+.txLeft {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.txAmount {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.txMethod {
+    font-size: 12px;
     font-weight: 600;
-    color: #0F6E56;
+    color: var(--text-color-secondary);
+    text-transform: uppercase;
+}
+
+.txRight {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.txDate {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.txTime {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+}
+
+.emptyState {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: var(--surface-ground);
+    border-radius: 12px;
+    color: var(--text-color-secondary);
+    font-size: 14px;
 }
