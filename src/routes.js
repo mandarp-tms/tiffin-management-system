@@ -12,7 +12,8 @@ export const PATHS = {
     APPROVALS: '/approvals',
     REPORTS: '/reports',
     PRICING: '/pricing',
-    MY_BILL: '/my-bill',
+    // MY_BILL: '/my-bill',
+    MY_PAYMENTS: '/my-payments',
     USERS: '/users',
     TIFFIN_CENTERS: '/tiffin-centers',
 
@@ -71,10 +72,18 @@ export const ROUTES = [
         parent: PATHS.DASHBOARD,
         showInNav: true,
     },
+    // {
+    //     path: PATHS.MY_BILL,
+    //     label: 'My Bill',
+    //     icon: 'receipt',
+    //     roles: ['user'],
+    //     parent: PATHS.DASHBOARD,
+    //     showInNav: true,
+    // },
     {
-        path: PATHS.MY_BILL,
-        label: 'My Bill',
-        icon: 'receipt',
+        path: PATHS.MY_PAYMENTS,
+        label: 'Transactions',
+        icon: 'transaction',
         roles: ['user'],
         parent: PATHS.DASHBOARD,
         showInNav: true,
@@ -134,7 +143,7 @@ export const ROUTES = [
         getLabel: ({ moduleId }) => {
             const cfg = MODULE_REGISTRY[moduleId]
             const title = cfg?.edit?.title
-            return title ? `Edit ${title}` : `Edit ${cfg?.label?.slice(0, -1) || 'Item'}`
+            return title || `Edit ${cfg?.label?.slice(0, -1) || 'Item'}`
         },
         getParent: ({ moduleId }) => {
             const cfg = MODULE_REGISTRY[moduleId]

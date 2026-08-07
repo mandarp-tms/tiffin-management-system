@@ -12,6 +12,7 @@ import ApprovalsPage from './pages/ApprovalsPage'
 import ReportsPage from './pages/ReportsPage'
 import PricingPage from './pages/PricingPage'
 import MyBillPage from './pages/MyBillPage'
+import MyPaymentsPage from './pages/MyPaymentsPage'
 import UsersPage from './pages/UsersPage'
 import TiffinCentersPage from './pages/TiffinCentersPage'
 import ModuleFormPage from './pages/ModuleFormPage'
@@ -68,6 +69,7 @@ const App = () => {
           <Route path={PATHS.REPORTS}        element={<ReportsPage />} />
           <Route path={PATHS.PRICING}        element={<PricingPage />} />
           <Route path={PATHS.MY_BILL}        element={<MyBillPage />} />
+          <Route path={PATHS.MY_PAYMENTS}    element={<MyPaymentsPage />} />
           <Route path={PATHS.USERS}          element={<UsersPage />} />
           <Route path={PATHS.TIFFIN_CENTERS} element={<TiffinCentersPage />} />
 

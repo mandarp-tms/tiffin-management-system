@@ -38,9 +38,12 @@ const AppInput = ({
                     onChange={handleChange}
                     placeholder={placeholder}
                     disabled={disabled}
-                    className={styles.input}
+                    className={clsx(styles.input, type === 'month' && !value && styles.isEmpty)}
                     {...rest}
                 />
+                {type === 'month' && !value && (
+                    <span className={styles.monthPlaceholder}>All Months</span>
+                )}
                 {isPassword && (
                     <button
                         type="button"

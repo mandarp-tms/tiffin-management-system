@@ -51,19 +51,19 @@ const getCustomerDateOptions = () => {
     const today = new Date()
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
-    
+
     const formatValue = (d) => {
         const y = d.getFullYear()
         const m = String(d.getMonth() + 1).padStart(2, '0')
         const day = String(d.getDate()).padStart(2, '0')
         return `${y}-${m}-${day}`
     }
-    
+
     const label = (d, offset) => {
         const day = d.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })
         return offset === 0 ? `Today — ${day}` : `Tomorrow — ${day}`
     }
-    
+
     return [
         { label: label(today, 0), value: formatValue(today) },
         { label: label(tomorrow, 1), value: formatValue(tomorrow) }
@@ -100,6 +100,13 @@ const getFieldProps = ({ values, customData, currentUser }) => {
             label: pricing[values.type]?.name ? `${pricing[values.type].name} Count` : 'Chapati Count',
         }
     }
+}
+
+const getEditFieldProps = (props) => {
+    const base = getFieldProps(props)
+    base.userId = { ...base.userId, disabled: true }
+    base.date = { ...base.date, disabled: true }
+    return base
 }
 
 const renderFooter = ({ values, handleSubmit, loading, customData, currentUser }) => {
@@ -265,7 +272,7 @@ export const tiffinEntryConfig = {
         title: 'Edit Tiffin Entry',
         endpoint: { method: 'PUT', url: '/tiffin-entries/:id' },
         fetchCustomData,
-        getFieldProps,
+        getFieldProps: getEditFieldProps,
         renderFooter,
         onValuesChange: handleValuesChange,
         fields: [
