@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { getUserStats } from '../services/userService'
 import { getTiffinUsers } from '../services/userService'
 import { getPayment } from '../services/paymentService'
-import { TYPE_LABELS, ROLES } from '../utils/constants'
+import { ROLES } from '../utils/constants'
 import StatusBadge from '../components/StatusBadge'
 import AppButton from '../components/AppButton'
 import PaymentModal from './PaymentModal'
@@ -38,12 +38,9 @@ const UsersPage = () => {
         setLoading(true)
         try {
             const statsPromises = customers.map(async (u) => {
-                const [stats, payment] = await Promise.all([
-                    getUserStats(u.id, CURRENT_MONTH, CURRENT_YEAR),
-                    getPayment(u.id, u.centerId || centerId, CURRENT_MONTH, CURRENT_YEAR),
-                ])
+                const stats = await getUserStats(u.id, null, null, true)
                 const totalDue = parseFloat(stats?.payment?.totalDue || 0)
-                const amountPaid = parseFloat(stats?.payment?.amountPaid || payment?.amountPaid || 0)
+                const amountPaid = parseFloat(stats?.payment?.amountPaid || 0)
                 const balanceDue = Math.max(0, totalDue - amountPaid)
                 const payStatus = amountPaid === 0 ? 'unpaid' : balanceDue <= 0 ? 'paid' : 'partial'
 
@@ -74,7 +71,7 @@ const UsersPage = () => {
         { label: 'Amount due', value: `₹${u.total}`, color: '#0F6E56' },
         { label: 'Tiffins taken', value: u.approved, color: 'var(--text-color)' },
         { label: 'Pending', value: u.pending, color: '#BA7517' },
-        { label: 'Favourite', value: TYPE_LABELS[u.favouriteType] || '—', color: '#534AB7' },
+        { label: 'Favourite', value: u.favouriteType ? String(u.favouriteType).charAt(0).toUpperCase() + String(u.favouriteType).slice(1) : '—', color: '#534AB7' },
     ]
 
     return (
@@ -141,7 +138,7 @@ const UsersPage = () => {
                             <div className={styles.paymentSection}>
                                 <div className={styles.paymentRow}>
                                     <div>
-                                        <div className={styles.paymentLabel}>{MONTH_LABEL} payment</div>
+                                        <div className={styles.paymentLabel}>Overall payment</div>
                                         <div className={styles.paymentAmounts}>
                                             <span className={styles.paidAmt}>₹{u.amountPaid} paid</span>
                                             {u.balanceDue > 0 && (

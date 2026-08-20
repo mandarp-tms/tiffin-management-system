@@ -2,7 +2,7 @@ import React from 'react'
 import clsx from 'clsx'
 import styles from './TiffinMobileCard.module.css'
 import StatusBadge from '../StatusBadge'
-import { TYPE_LABELS } from '../../utils/constants'
+
 import { formatDate } from '../../utils/formatDate'
 
 const TiffinMobileCard = ({ row, actions, hideCustomer = false }) => {
@@ -31,7 +31,7 @@ const TiffinMobileCard = ({ row, actions, hideCustomer = false }) => {
                 </div>
             )}
             <div className={clsx(styles.cell, styles.type)}>
-                <StatusBadge status={row.tiffinType || row.type} label={TYPE_LABELS[row.tiffinType || row.type] || (row.tiffinType || row.type)} />
+                <StatusBadge status={row.tiffinType || row.type} />
             </div>
             <div className={clsx(styles.cell, styles.chapati)}>
                 <span style={{ fontSize: '12px', color: 'var(--text-color-secondary)', marginRight: '6px' }}>Chapati:</span>

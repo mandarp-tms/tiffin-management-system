@@ -2,6 +2,7 @@ import AppInput from '../AppInput'
 import AppDropdown from '../AppDropdown'
 import AppDatePicker from '../AppDatePicker'
 import AppRadio from '../AppRadio'
+import AppCheckboxGroup from '../AppCheckboxGroup'
 import AppButton from '../AppButton'
 import styles from './AppForm.module.css'
 import { useFormState } from '../../hooks/useFormState'
@@ -101,6 +102,20 @@ const AppForm = ({
                         key={field.key}
                         label={effectiveLabel}
                         value={values[field.key]}
+                        options={field.options || []}
+                        onChange={e => setValue(field.key, e.value)}
+                        error={error}
+                        inline
+                        {...extra}
+                    />
+                )
+
+            case 'checkbox-group':
+                return (
+                    <AppCheckboxGroup
+                        key={field.key}
+                        label={effectiveLabel}
+                        value={values[field.key] || {}}
                         options={field.options || []}
                         onChange={e => setValue(field.key, e.value)}
                         error={error}

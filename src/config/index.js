@@ -1,6 +1,6 @@
 import { customerConfig } from './modules/customer.config'
 import { tiffinEntryConfig }  from './modules/tiffinEntry.config.jsx'
-// import { pricingConfig }      from './modules/pricing.config'
+import { pricingConfig }      from './modules/pricing.config'
 // import { paymentConfig }      from './modules/payment.config'
 // import { tiffinCenterConfig } from './modules/tiffinCenter.config'
 // import { approvalConfig }     from './modules/approval.config'
@@ -9,7 +9,7 @@ import { tiffinEntryConfig }  from './modules/tiffinEntry.config.jsx'
 export const MODULE_REGISTRY = {
     customer:      customerConfig,
     tiffinEntry:   tiffinEntryConfig,
-    //   pricing:       pricingConfig,
+    pricing:       pricingConfig,
     //   payment:       paymentConfig,
     //   tiffinCenter:  tiffinCenterConfig,
     //   approval:      approvalConfig,

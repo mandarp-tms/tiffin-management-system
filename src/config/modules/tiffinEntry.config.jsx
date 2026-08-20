@@ -1,7 +1,7 @@
 import { getPricing } from '../../services/pricingService'
 import AppButton from '../../components/AppButton'
 import { markNoTiffin } from '../../services/tiffinService'
-import { SHIFTS, TYPE_LABELS } from '../../utils/constants'
+import { SHIFTS } from '../../utils/constants'
 import { formatDate } from '../../utils/formatDate'
 import StatusBadge from '../../components/StatusBadge'
 import clsx from 'clsx'
@@ -72,10 +72,23 @@ const getCustomerDateOptions = () => {
 
 const getFieldProps = ({ values, customData, currentUser }) => {
     const pricing = customData || {}
-    const tiffinTypes = Object.entries(pricing).map(([key, val]) => ({
-        label: val.name || key,
-        value: key,
-    }))
+    
+    let dayOfWeek = null
+    if (values.date) {
+        dayOfWeek = new Date(values.date).getDay().toString()
+    }
+
+    const tiffinTypes = !values.date ? [] : Object.entries(pricing)
+        .filter(([key, val]) => {
+            if (val.availableDays && val.availableDays[dayOfWeek] === false) {
+                return false
+            }
+            return true
+        })
+        .map(([key, val]) => ({
+            label: val.name || key,
+            value: key,
+        }))
 
     const chapatiConfig = getChapatiConfig(pricing[values.type])
     const isCustomer = currentUser?.role === 'user'
@@ -90,14 +103,18 @@ const getFieldProps = ({ values, customData, currentUser }) => {
             options: getCustomerDateOptions(),
         } : {},
         type: {
-            options: tiffinTypes
+            options: tiffinTypes,
+            disabled: !values.date,
+            placeholder: values.date ? 'Select Tiffin Type' : 'Select Date first',
         },
         chapatiCount: {
             hidden: chapatiConfig.mode === 'none',
             componentType: chapatiConfig.mode === 'input' ? 'input' : 'dropdown',
             type: chapatiConfig.mode === 'input' ? 'number' : undefined,
             options: chapatiConfig.mode === 'dropdown' ? chapatiConfig.options : [],
-            label: pricing[values.type]?.name ? `${pricing[values.type].name} Count` : 'Chapati Count',
+            label: chapatiConfig.mode === 'dropdown' 
+                ? 'Chapati / Bhakari Count' 
+                : (pricing[values.type]?.name ? `${pricing[values.type].name} Count` : 'Chapati Count'),
         }
     }
 }
@@ -178,6 +195,18 @@ const handleValuesChange = (newVals, prevVals, { setValue, customData }) => {
             setValue('chapatiCount', pricingEntry.defaultChapati)
         }
     }
+
+    // When date changes, validate if current type is still available
+    if (newVals.date !== prevVals.date && newVals.type) {
+        const pricingEntry = customData?.[newVals.type]
+        if (pricingEntry && pricingEntry.availableDays) {
+            const dayOfWeek = new Date(newVals.date).getDay().toString()
+            if (pricingEntry.availableDays[dayOfWeek] === false) {
+                setValue('type', '')
+                setValue('chapatiCount', '')
+            }
+        }
+    }
 }
 
 export const tiffinEntryConfig = {
@@ -194,7 +223,7 @@ export const tiffinEntryConfig = {
                 body: row => row.user?.name || '—',
             },
             { header: 'Shift', body: row => <StatusBadge status={row.shift || 'morning'} /> },
-            { header: 'Type', body: row => <StatusBadge status={row.tiffinType} label={TYPE_LABELS[row.tiffinType] || row.tiffinType} /> },
+            { header: 'Type', body: row => <StatusBadge status={row.tiffinType} /> },
             { header: 'Chapati', body: row => row.chapatiCount || '—', align: 'center' },
             {
                 header: 'Amount',
