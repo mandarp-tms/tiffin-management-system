@@ -21,51 +21,24 @@ const UsersPage = () => {
     const { currentUser, isRole } = useAuth()
     const centerId = currentUser?.centerId || 1
     const [customers, setCustomers] = useState([])
-    const [customerStats, setCustomerStats] = useState([])
     const [loading, setLoading] = useState(true)
     const [paymentModal, setPaymentModal] = useState(null)
 
-    // Load customers list
-    useEffect(() => {
-        getTiffinUsers(centerId)
-            .then(data => setCustomers(Array.isArray(data) ? data : []))
-            .catch(err => console.error('Load customers error:', err))
-    }, [centerId])
-
-    // Load stats for each customer
-    const fetchStats = useCallback(async () => {
-        if (customers.length === 0) return
+    const fetchCustomers = useCallback(async () => {
         setLoading(true)
         try {
-            const statsPromises = customers.map(async (u) => {
-                const stats = await getUserStats(u.id, null, null, true)
-                const totalDue = parseFloat(stats?.payment?.totalDue || 0)
-                const amountPaid = parseFloat(stats?.payment?.amountPaid || 0)
-                const balanceDue = Math.max(0, totalDue - amountPaid)
-                const payStatus = amountPaid === 0 ? 'unpaid' : balanceDue <= 0 ? 'paid' : 'partial'
-
-                return {
-                    ...u,
-                    approved: stats?.approvedCount || 0,
-                    pending: stats?.pendingCount || 0,
-                    total: stats?.totalAmount || 0,
-                    favouriteType: stats?.favouriteType || null,
-                    totalDue,
-                    amountPaid,
-                    balanceDue,
-                    payStatus,
-                }
-            })
-            const results = await Promise.all(statsPromises)
-            setCustomerStats(results)
+            const data = await getTiffinUsers(centerId)
+            setCustomers(Array.isArray(data) ? data : [])
         } catch (err) {
-            console.error('Load stats error:', err)
+            console.error('Load customers error:', err)
         } finally {
             setLoading(false)
         }
-    }, [customers, centerId])
+    }, [centerId])
 
-    useEffect(() => { fetchStats() }, [fetchStats])
+    useEffect(() => {
+        fetchCustomers()
+    }, [fetchCustomers])
 
     const statCells = (u) => [
         { label: 'Amount due', value: `₹${u.total}`, color: '#0F6E56' },
@@ -79,7 +52,7 @@ const UsersPage = () => {
 
             <div className={styles.header}>
                 <div className={styles.sub}>
-                    {loading ? '...' : `${customerStats.length} active customers this month`}
+                    {loading ? '...' : `${customers.length} active customers`}
                 </div>
                 {isRole(ROLES.CENTER) && (
                     <AppButton
@@ -102,7 +75,7 @@ const UsersPage = () => {
                 </div>
             ) : (
                 <div className={styles.grid}>
-                    {customerStats.map(u => (
+                    {customers.map(u => (
                         <div key={u.id} className={styles.card}>
 
                             {/* Card header */}
@@ -175,7 +148,7 @@ const UsersPage = () => {
                     onClose={() => setPaymentModal(null)}
                     onSuccess={() => {
                         setPaymentModal(null)
-                        fetchStats()   // ← refresh stats after payment recorded
+                        fetchCustomers()   // ← refresh stats after payment recorded
                     }}
                 />
             )}
