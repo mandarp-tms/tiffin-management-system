@@ -6,7 +6,7 @@ const AppInput = ({
     value, onChange, type = 'text',
     placeholder = '', label,
     disabled = false, fullWidth = true, style = {},
-    error, icon, ...rest
+    error, icon, componentType, ...rest
 }) => {
     const ref = useRef(null)
     const [showPassword, setShowPassword] = useState(false)

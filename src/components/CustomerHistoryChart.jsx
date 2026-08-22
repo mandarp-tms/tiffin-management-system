@@ -12,7 +12,7 @@ import {
     DoughnutController,
     Tooltip,
 } from 'chart.js'
-import { TYPE_LABELS } from '../utils/constants'
+
 import styles from './CustomerHistoryChart.module.css'
 
 ChartJS.register(
@@ -102,7 +102,7 @@ const CustomerHistoryChart = ({ data, loading }) => {
             typeChartRef.current = new ChartJS(ctx2, {
                 type: 'doughnut',
                 data: {
-                    labels: data.typeBreakdown.map(t => TYPE_LABELS[t.type] || t.type),
+                    labels: data.typeBreakdown.map(t => t.type ? String(t.type).charAt(0).toUpperCase() + String(t.type).slice(1) : t.type),
                     datasets: [{
                         data: data.typeBreakdown.map(t => t.count),
                         backgroundColor: data.typeBreakdown.map(t => TYPE_COLORS[t.type] || '#898781'),
@@ -206,7 +206,7 @@ const CustomerHistoryChart = ({ data, loading }) => {
                         {data.typeBreakdown.slice(0, 4).map(t => (
                             <div key={t.type} className={styles.typeLegendItem}>
                                 <span className={styles.typeDot} style={{ background: TYPE_COLORS[t.type] || '#898781' }} />
-                                <span className={styles.typeLabel}>{TYPE_LABELS[t.type] || t.type}</span>
+                                <span className={styles.typeLabel}>{t.type ? String(t.type).charAt(0).toUpperCase() + String(t.type).slice(1) : t.type}</span>
                                 <span className={styles.typePct}>{t.percentage}%</span>
                             </div>
                         ))}

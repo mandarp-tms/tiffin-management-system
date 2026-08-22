@@ -95,7 +95,7 @@ const DashboardPage = () => {
         { header: 'Date', field: 'entryDate', noWrap: true, body: row => formatDate(row.entryDate) },
         { header: 'Customer', field: 'userName', noWrap: true, body: row => row.user?.name || row.userName || '—' },
         { header: 'Shift', field: 'shift', body: row => <StatusBadge status={row.shift || 'morning'} /> },
-        { header: 'Type', field: 'tiffinType', body: row => <StatusBadge status={row.tiffinType} label={TYPE_LABELS[row.tiffinType]} /> },
+        { header: 'Type', field: 'tiffinType', body: row => <StatusBadge status={row.tiffinType} /> },
         { header: 'Chapati', field: 'chapatiCount', align: 'center', body: row => row.chapatiCount || '—' },
         { header: 'Amount', field: 'amount', align: 'right', body: row => row.amount ? `₹${row.amount}` : '—' },
         { header: 'Status', field: 'status', body: row => <StatusBadge status={row.status} /> },

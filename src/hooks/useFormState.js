@@ -21,6 +21,7 @@ export const useFormState = (schema, initialValues = {}, fieldProps = {}) => {
     useEffect(() => {
         schema.fields
             .filter(f => f.apiSource)
+            .filter(f => !(fieldProps[f.key] || {}).hidden)
             .forEach(async f => {
                 try {
                     const res = await apiClient.get(f.apiSource)
@@ -103,6 +104,7 @@ export const useFormState = (schema, initialValues = {}, fieldProps = {}) => {
         field.apiSource ? dynamicOptions[field.key] || [] : field.options || []
 
     const isFieldVisible = (field) => {
+        if (field.showIf) return field.showIf(values)
         if (!field.dependsOn) return true
         const depVal = values[field.dependsOn.field]
         if (field.dependsOn.values) return field.dependsOn.values.includes(depVal)

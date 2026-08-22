@@ -6,16 +6,7 @@ import AppDataTable from '../components/AppDataTable'
 import StatusBadge from '../components/StatusBadge'
 import { getAllCenters, getCenterCustomers } from '../services/tiffinCenterService'
 import { getPricing, updatePricing } from '../services/pricingService'
-import { TYPE_LABELS } from '../utils/constants'
 import styles from './TiffinCentersPage.module.css'
-
-const PRICE_FIELDS = [
-    { key: 'full', label: 'Full tiffin', sub: 'Chapati default', hasChapati: true },
-    { key: 'half', label: 'Half tiffin', sub: 'Chapati default', hasChapati: true },
-    { key: 'chapati', label: 'Only chapati', sub: 'Chapati default', hasChapati: true },
-    { key: 'bhakari', label: 'Bhakari', sub: 'Bhakri default', hasChapati: true },
-    { key: 'dalrice', label: 'Dal rice', sub: 'Fixed price', hasChapati: false },
-]
 
 // ── Shared modal wrapper ───────────────────────────────────────
 const ModalWrap = ({ onClose, children, maxWidth = '480px' }) => (
@@ -38,102 +29,7 @@ const ModalHeader = ({ title, sub, onClose }) => (
     </div>
 )
 
-// ── Pricing Modal ──────────────────────────────────────────────
-const PricingModal = ({ center, onClose }) => {
-    const [prices, setPrices] = useState(null)
-    const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
-    const [saved, setSaved] = useState(false)
-
-    useEffect(() => {
-        setLoading(true)
-        getPricing(center.id)
-            .then(data => setPrices(data))
-            .catch(err => console.error('Load pricing error:', err))
-            .finally(() => setLoading(false))
-    }, [center.id])
-
-    const getValue = (key) => prices?.[key]?.basePrice ?? ''
-
-    const updateField = (key, value) =>
-        setPrices(prev => ({ ...prev, [key]: { ...prev[key], basePrice: value } }))
-
-    const handleSave = async () => {
-        if (!prices) return
-        setSaving(true)
-        try {
-            const shapedPrices = {}
-            PRICE_FIELDS.forEach(f => {
-                shapedPrices[f.key] = {
-                    basePrice: prices[f.key]?.basePrice || 0,
-                    defaultChapati: prices[f.key]?.defaultChapati || 0,
-                    pricePerChapati: prices[f.key]?.pricePerChapati || 5,
-                    isFixedPrice: !f.hasChapati,
-                }
-            })
-            await updatePricing(center.id, shapedPrices)
-            setSaved(true)
-            setTimeout(() => { setSaved(false); onClose() }, 900)
-        } catch (err) {
-            console.error('Save pricing error:', err)
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    return (
-        <ModalWrap onClose={onClose}>
-            <ModalHeader
-                title={`Pricing — ${center.name}`}
-                sub='Set tiffin prices for this center'
-                onClose={onClose}
-            />
-
-            <div className={styles.modalInfoBanner}>
-                Each chapati below default reduces price by respective price per chapati.
-            </div>
-
-            {loading ? (
-                <div style={{ padding: '2rem', textAlign: 'center', fontSize: '13px', color: 'var(--text-color-secondary)' }}>
-                    Loading pricing...
-                </div>
-            ) : (
-                <div className={styles.pricingList}>
-                    {PRICE_FIELDS.map(field => {
-                        const defaultChapati = `${field.hasChapati ? prices?.[field.key]?.defaultChapati + ' ' : ''}`
-                        return (<div key={field.key} className={styles.pricingRow}>
-                            <div>
-                                <div className={styles.pricingLabel}>{field.label}</div>
-                                <div className={styles.pricingSub}>{defaultChapati + field.sub}</div>
-                            </div>
-                            <div className={styles.pricingInput}>
-                                <span className={styles.rupeeSign}>₹</span>
-                                <input
-                                    type='number'
-                                    className={styles.numberInput}
-                                    value={getValue(field.key)}
-                                    min={0}
-                                    max={999}
-                                    onChange={e => updateField(field.key, Number(e.target.value))}
-                                />
-                            </div>
-                        </div>)
-                    })}
-                </div>
-            )}
-
-            <div className={styles.modalFooter}>
-                <AppButton label='Cancel' variant='secondary' onClick={onClose} />
-                <AppButton
-                    label={saved ? 'Saved ✓' : 'Save pricing'}
-                    variant={saved ? 'success' : 'primary'}
-                    disabled={saving || loading}
-                    onClick={handleSave}
-                />
-            </div>
-        </ModalWrap>
-    )
-}
+// PricingModal removed as pricing is managed dynamically per center via /pricing
 
 // ── Customers Modal ────────────────────────────────────────────
 const CustomersModal = ({ center, onClose }) => {
@@ -152,7 +48,7 @@ const CustomersModal = ({ center, onClose }) => {
         { label: 'Amount due', value: `₹${u.total || 0}`, color: '#0F6E56' },
         { label: 'Tiffins', value: u.approvedCount || 0, color: 'var(--text-color)' },
         { label: 'Pending', value: u.pending || 0, color: '#BA7517' },
-        { label: 'Favourite', value: TYPE_LABELS[u.favouriteType] || '—', color: '#534AB7' },
+        { label: 'Favourite', value: u.favouriteType ? String(u.favouriteType).charAt(0).toUpperCase() + String(u.favouriteType).slice(1) : '—', color: '#534AB7' },
     ]
 
     return (
@@ -207,7 +103,6 @@ const CustomersModal = ({ center, onClose }) => {
 const TiffinCentersPage = () => {
     const [tableData, setTableData] = useState([])
     const [loading, setLoading] = useState(true)
-    const [pricingModal, setPricingModal] = useState(null)
     const [customersModal, setCustomersModal] = useState(null)
 
     useEffect(() => {
@@ -261,18 +156,6 @@ const TiffinCentersPage = () => {
                 />
             ),
         },
-        {
-            header: 'Pricing',
-            body: row => (
-                <AppButton
-                    label='Set pricing'
-                    icon={<FaTag size={12} />}
-                    variant='primary'
-                    size='sm'
-                    onClick={() => setPricingModal(row)}
-                />
-            ),
-        },
     ]
 
     return (
@@ -304,7 +187,6 @@ const TiffinCentersPage = () => {
                 />
             </div>
 
-            {pricingModal && <PricingModal center={pricingModal} onClose={() => setPricingModal(null)} />}
             {customersModal && <CustomersModal center={customersModal} onClose={() => setCustomersModal(null)} />}
 
         </div>

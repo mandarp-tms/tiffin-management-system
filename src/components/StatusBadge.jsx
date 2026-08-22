@@ -8,12 +8,6 @@ const BADGE_CONFIG = {
     active: { label: 'Active' },
     morning: { label: '🌅 Morning' },
     night: { label: '🌙 Night' },
-    full: { label: 'Full' },
-    half: { label: 'Half' },
-    chapati: { label: 'Only Chapati' },
-    bhakari: { label: 'Bhakari' },
-    dalrice: { label: 'Dal Rice' },
-    none: { label: 'No Tiffin' },
     // payment statuses
     paid: { label: 'Paid' },
     partial: { label: 'Partial' },
@@ -21,10 +15,12 @@ const BADGE_CONFIG = {
 }
 
 const StatusBadge = ({ status, label, style = {} }) => {
-    const cfg = BADGE_CONFIG[status] || { label: status }
+    // If not in config, uppercase first letter as fallback for custom tiffin types
+    const fallbackLabel = status ? String(status).charAt(0).toUpperCase() + String(status).slice(1) : ''
+    const cfg = BADGE_CONFIG[status] || { label: fallbackLabel }
     return (
         <span
-            className={clsx(styles.badge, styles[status])}
+            className={clsx(styles.badge, styles[status] || styles.defaultStatus)}
             style={style}
         >
             {label || cfg.label}

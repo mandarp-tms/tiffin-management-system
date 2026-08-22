@@ -37,7 +37,8 @@ const ModuleFormPage = ({ mode = 'add' }) => {
     useEffect(() => {
         if (mode !== 'edit' || !id || !config) return
         setFetchingRecord(true)
-        apiClient.get(`${config.endpoint}/${id}`)
+        const baseUrl = config.apiEndpoint || config.endpoint || `/module/${moduleId}`
+        apiClient.get(`${baseUrl}/${id}`)
             .then(res => {
                 setInitialValues(res.data || {})
                 setFormValues(res.data || {})
@@ -60,7 +61,14 @@ const ModuleFormPage = ({ mode = 'add' }) => {
     const handleSubmit = async (values) => {
         setLoading(true)
         try {
-            let url = schema.endpoint.url.replace(':id', id || '')
+            // Determine URL and method (fallback to top-level apiEndpoint if schema.endpoint missing)
+            const endpointDef = schema.endpoint || {}
+            const fallbackUrl = config.apiEndpoint || config.endpoint || `/module/${moduleId}`
+            let url = (endpointDef.url || fallbackUrl).replace(':id', id || '')
+            if (mode === 'edit' && !endpointDef.url && url === fallbackUrl) {
+                url = `${url}/${id}` // Append ID if generic top-level endpoint is used for edit
+            }
+            const method = endpointDef.method || (mode === 'edit' ? 'PUT' : 'POST')
 
             const payload = {
                 ...values,
@@ -68,11 +76,11 @@ const ModuleFormPage = ({ mode = 'add' }) => {
                 ...(schema.injectRole && { role: schema.injectRole }),
             }
 
-            if (schema.endpoint.method === 'POST') {
+            if (method === 'POST') {
                 await apiClient.post(url, payload)
-            } else if (schema.endpoint.method === 'PATCH') {
+            } else if (method === 'PATCH') {
                 await apiClient.patch(url, payload)
-            } else if (schema.endpoint.method === 'PUT') {
+            } else if (method === 'PUT') {
                 await apiClient.put(url, payload)
             }
 

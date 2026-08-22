@@ -6,7 +6,7 @@ import AppDataTable from '../components/AppDataTable'
 import AppButton from '../components/AppButton'
 import StatusBadge from '../components/StatusBadge'
 import { getPendingTiffins, approveTiffin, rejectTiffin } from '../services/tiffinService'
-import { TYPE_LABELS } from '../utils/constants'
+import { ROLES } from '../utils/constants'
 import { formatDate } from '../utils/formatDate'
 import TiffinMobileCard from '../components/TiffinMobileCard/TiffinMobileCard'
 import styles from './ApprovalsPage.module.css'
@@ -98,7 +98,7 @@ const ApprovalsPage = () => {
         },
         {
             header: 'Type',
-            body: row => <StatusBadge status={row.tiffinType} label={TYPE_LABELS[row.tiffinType]} />,
+            body: row => <StatusBadge status={row.tiffinType} />,
         },
         {
             header: 'Chapati',

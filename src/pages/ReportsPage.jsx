@@ -8,7 +8,7 @@ import AppButton from '../components/AppButton'
 import { getTiffinUsers } from '../services/userService'
 import { getPayment, recordPayment } from '../services/paymentService'
 import { getBillingReport } from '../services/reportService'
-import { TYPE_LABELS, ROLES } from '../utils/constants'
+import { ROLES } from '../utils/constants'
 import { formatDate } from '../utils/formatDate'
 import { useAuth } from '../context/AuthContext'
 import { FaRupeeSign, FaTimes } from 'react-icons/fa'
@@ -238,7 +238,7 @@ const ReportsPage = () => {
         { header: 'Date', body: row => formatDate(row.date || row.entryDate), noWrap: true },
         { header: 'Customer', body: row => row.user?.name || row.userName || '—', noWrap: true },
         { header: 'Shift', body: row => <StatusBadge status={row.shift || 'morning'} /> },
-        { header: 'Type', body: row => <StatusBadge status={row.tiffinType || row.type} label={TYPE_LABELS[row.tiffinType || row.type]} /> },
+        { header: 'Type', body: row => <StatusBadge status={row.tiffinType || row.type} /> },
         { header: 'Chapati', body: row => row.chapatiCount || '—', align: 'center' },
         {
             header: 'Amount',
