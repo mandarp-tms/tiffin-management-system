@@ -41,10 +41,10 @@ const PaymentModal = ({ customer, centerId, onClose, onSuccess }) => {
             .finally(() => setLoading(false))
     }, [customer.id, centerId])
 
-    const totalDue = customer.totalDue || 0
-    const alreadyPaid = parseFloat(payment?.amountPaid || 0)
-    const balanceDue = Math.max(0, totalDue - alreadyPaid)
-    const payStatus = alreadyPaid === 0 ? 'unpaid' : balanceDue <= 0 ? 'paid' : 'partial'
+    const totalAmount = customer.total || 0
+    const alreadyPaid = parseFloat(customer.amountPaid || payment?.amountPaid || 0)
+    const balanceDue = customer.balanceDue || 0
+    const payStatus = customer.payStatus || (alreadyPaid === 0 ? 'unpaid' : balanceDue <= 0 ? 'paid' : 'partial')
 
     const handleRecord = async () => {
         const amt = parseFloat(amount)
@@ -116,15 +116,15 @@ const PaymentModal = ({ customer, centerId, onClose, onSuccess }) => {
                         {/* Summary cards */}
                         <div className={styles.summaryRow}>
                             <div className={styles.summaryCard}>
-                                <div className={styles.summaryLabel}>Total due</div>
-                                <div className={styles.summaryValue}>₹{totalDue}</div>
+                                <div className={styles.summaryLabel}>Total amount</div>
+                                <div className={styles.summaryValue}>₹{totalAmount}</div>
                             </div>
                             <div className={styles.summaryCard}>
                                 <div className={styles.summaryLabel}>Already paid</div>
                                 <div className={`${styles.summaryValue} ${styles.green}`}>₹{alreadyPaid}</div>
                             </div>
                             <div className={styles.summaryCard}>
-                                <div className={styles.summaryLabel}>Balance due</div>
+                                <div className={styles.summaryLabel}>Due amount</div>
                                 <div className={`${styles.summaryValue} ${balanceDue > 0 ? styles.red : styles.green}`}>
                                     ₹{balanceDue}
                                 </div>

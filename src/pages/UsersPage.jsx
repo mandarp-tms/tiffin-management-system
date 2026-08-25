@@ -41,7 +41,7 @@ const UsersPage = () => {
     }, [fetchCustomers])
 
     const statCells = (u) => [
-        { label: 'Amount due', value: `₹${u.total}`, color: '#0F6E56' },
+        { label: 'Total amount', value: `₹${u.total}`, color: '#000000' },
         { label: 'Tiffins taken', value: u.approved, color: 'var(--text-color)' },
         { label: 'Pending', value: u.pending, color: '#BA7517' },
         { label: 'Favourite', value: u.favouriteType ? String(u.favouriteType).charAt(0).toUpperCase() + String(u.favouriteType).slice(1) : '—', color: '#534AB7' },
