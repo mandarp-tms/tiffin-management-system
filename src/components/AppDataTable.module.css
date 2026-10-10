@@ -42,6 +42,14 @@
     background: var(--surface-ground);
 }
 
+.noTiffinRow {
+    background-color: #fff0f0;
+}
+
+.noTiffinRow:hover {
+    background-color: #ffe4e6;
+}
+
 .td {
     padding: 11px 14px;
     color: var(--text-color);

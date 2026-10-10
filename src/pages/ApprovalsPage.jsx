@@ -98,7 +98,11 @@ const ApprovalsPage = () => {
         },
         {
             header: 'Type',
-            body: row => <StatusBadge status={row.tiffinType} />,
+            body: row => row.isNoTiffin ? (
+                <span style={{ color: '#d32f2f', fontWeight: 'bold' }}>🚫 No Tiffin</span>
+            ) : (
+                <StatusBadge status={row.tiffinType} />
+            ),
         },
         {
             header: 'Chapati',
@@ -154,6 +158,7 @@ const ApprovalsPage = () => {
                     pageSize={PAGE_SIZE}
                     serverPagination={pagination}
                     onPageChange={handlePageChange}
+                    rowClassName={(row) => row.isNoTiffin ? 'noTiffinRow' : ''}
                     renderMobileCard={(row) => (
                         <TiffinMobileCard
                             row={row}
