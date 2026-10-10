@@ -7,7 +7,11 @@ import { formatDate } from '../../utils/formatDate'
 
 const TiffinMobileCard = ({ row, actions, hideCustomer = false }) => {
     return (
-        <div className={clsx(styles.card, hideCustomer && styles.noCustomer)}>
+        <div className={clsx(
+            styles.card, 
+            hideCustomer && styles.noCustomer,
+            row.isNoTiffin && styles.noTiffinCard
+        )}>
             {!hideCustomer && (
                 <div className={clsx(styles.cell, styles.customer)}>
                     {row.user?.name || row.userName || '—'}
@@ -31,7 +35,11 @@ const TiffinMobileCard = ({ row, actions, hideCustomer = false }) => {
                 </div>
             )}
             <div className={clsx(styles.cell, styles.type)}>
-                <StatusBadge status={row.tiffinType || row.type} />
+                {row.isNoTiffin ? (
+                    <span style={{ color: '#d32f2f', fontWeight: 'bold' }}>🚫 No Tiffin</span>
+                ) : (
+                    <StatusBadge status={row.tiffinType || row.type} />
+                )}
             </div>
             <div className={clsx(styles.cell, styles.chapati)}>
                 <span style={{ fontSize: '12px', color: 'var(--text-color-secondary)', marginRight: '6px' }}>Chapati:</span>

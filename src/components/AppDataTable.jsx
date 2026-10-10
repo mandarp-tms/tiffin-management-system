@@ -7,6 +7,7 @@ const AppDataTable = ({
     emptyMessage = 'No records found.',
     pageSize = 10, loading = false,
     renderMobileCard = null,
+    rowClassName = null,
     // Server-side pagination (optional)
     serverPagination = null,   // { page, total, totalPages }
     onPageChange = null,       // (newPage) => void
@@ -63,7 +64,11 @@ const AppDataTable = ({
                             <tr><td colSpan={columns.length} className={styles.empty}>{emptyMessage}</td></tr>
                         )}
                         {!loading && paginated.map((row, rIdx) => (
-                            <tr key={row.id || rIdx} className={clsx(styles.tr, renderMobileCard && styles.hasCustomMobile)}>
+                            <tr key={row.id || rIdx} className={clsx(
+                                styles.tr, 
+                                renderMobileCard && styles.hasCustomMobile,
+                                rowClassName && styles[rowClassName(row)]
+                            )}>
                                 {renderMobileCard && (
                                     <td colSpan={columns.length} className={styles.mobileCustomCell}>
                                         {renderMobileCard(row, rIdx)}

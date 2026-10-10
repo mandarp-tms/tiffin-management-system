@@ -10,6 +10,15 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
+.noTiffinCard {
+    background-color: #fff0f0;
+    border-color: #ffcdd2;
+}
+
+.noTiffinCard .amount {
+    background-color: #ffe4e6;
+}
+
 .cell {
     display: flex;
     align-items: center;
